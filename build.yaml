@@ -40,7 +40,7 @@ steps:
       - -c
       - |
           sax_root_path=$(git rev-parse --show-toplevel)
-          docker build -f Dockerfile.dev ${sax_root_path} -t $_CONTAINER_REGISTRY_PREFIX/sax-dev
+          docker build -f Dockerfile.dev ${sax_root_path} -t sax-dev
 
   - id: Buld Saxml admin container 
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -49,7 +49,7 @@ steps:
     args:
       - -c
       - |
-          docker build -f Dockerfile.admin . -t $_CONTAINER_REGISTRY_PREFIX/sax-admin
+          docker build -f Dockerfile.admin . -t sax-admin
 
   - id: Buld Saxml model server container 
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -58,7 +58,7 @@ steps:
     args:
       - -c
       - |
-          docker build -f Dockerfile.model . -t $_CONTAINER_REGISTRY_PREFIX/sax-model
+          docker build -f Dockerfile.model . -t sax-model
 
   - id: Buld Saxml util container 
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -67,7 +67,18 @@ steps:
     args:
       - -c
       - |
-          docker build -f Dockerfile.util . -t $_CONTAINER_REGISTRY_PREFIX/sax-util
+          docker build -f Dockerfile.util . -t sax-util
+
+  - id: Tag images 
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: '/bin/bash' 
+    args:
+      - -c
+      - |
+          docker tag sax-dev $_CONTAINER_REGISTRY_PREFIX/sax-dev 
+          docker tag sax-model $_CONTAINER_REGISTRY_PREFIX/sax-model 
+          docker tag sax-admin $_CONTAINER_REGISTRY_PREFIX/sax-admin 
+          docker tag sax-util $_CONTAINER_REGISTRY_PREFIX/sax-util 
 
 images:
   - $_CONTAINER_REGISTRY_PREFIX/sax-dev

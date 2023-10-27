@@ -36,7 +36,7 @@ export CONTAINER_REGISTRY_PREFIX=gcr.io/$PROJECT_ID
 gcloud builds submit \
   --config build.yaml \
   --substitutions _CONTAINER_REGISTRY_PREFIX=$CONTAINER_REGISTRY_PREFIX \
-  --timeout "4h" \
+  --timeout "16h" \
   --machine-type=e2-highcpu-32 \
   --quiet
 
