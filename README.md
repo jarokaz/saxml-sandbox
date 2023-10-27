@@ -42,3 +42,24 @@ gcloud builds submit \
 
 
 ```
+
+### Starting an admin container
+
+```
+docker run -it --rm \
+--env SAX_CELL=/sax/test \
+--env GSBUCKET=jk-gke-aiml-repository \
+--env PORT=10000 \
+gcr.io/jk-mlops-dev/sax-admin
+```
+
+### Starting a model server container
+
+```
+docker run -it --rm \
+gcr.io/jk-mlops-dev/sax-model \
+--sax_cell=/sax/test \
+--port=1001 \
+--platform_chip=tpuv4 \
+--platform_topology=2x2x1 
+```
