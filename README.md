@@ -76,11 +76,17 @@ SAX_ADMIN_SERVER_IMAGE_NAME="us-docker.pkg.dev/cloud-tpu-images/inference/sax-ad
 SAX_MODEL_SERVER_IMAGE_NAME="us-docker.pkg.dev/cloud-tpu-images/inference/sax-model-server"
 SAX_UTIL_IMAGE_NAME="us-docker.pkg.dev/cloud-tpu-images/inference/sax-util"
 
+
 SAX_VERSION=v1.0.0
 
 export SAX_ADMIN_SERVER_IMAGE_URL=${SAX_ADMIN_SERVER_IMAGE_NAME}:${SAX_VERSION}
 export SAX_MODEL_SERVER_IMAGE_URL=${SAX_MODEL_SERVER_IMAGE_NAME}:${SAX_VERSION}
 export SAX_UTIL_IMAGE_URL="${SAX_UTIL_IMAGE_NAME}:${SAX_VERSION}"
+
+docker pull $SAX_ADMIN_SERVER_IMAGE_URL 
+docker pull $SAX_MODEL_SERVER_IMAGE_URL
+docker pull $SAX_UTIL_IMAGE_URL
+
 export SAX_ADMIN_SERVER_DOCKER_NAME="sax-admin-server"
 export SAX_MODEL_SERVER_DOCKER_NAME="sax-model-server"
 export SAX_CELL="/sax/test"
