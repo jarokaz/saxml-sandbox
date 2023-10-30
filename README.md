@@ -6,7 +6,7 @@ This reference guide introduces a reference architecture for deploying [Saxml](h
 
 The diagram below depicts a high-level architecture of the Saxml system on Google Kubernetes Engine.
 
-![arch](/images/png)
+![arch](/images/saxml-gke.png)
 
 ## Saxml deployment configuration
 
