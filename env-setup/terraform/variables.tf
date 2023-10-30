@@ -34,7 +34,7 @@ variable "repository_bucket_name" {
     type        = string
 }
 
-variable "saxml_admin_bucket_name {
+variable "saxml_admin_bucket_name" {
     description = "The GCS bucket name to be used as Saxml admin bucket"
     type        = string
 }
@@ -54,11 +54,6 @@ variable "cluster_description" {
     default = "GKE cluster to host Saxml cell"
 }
 
-
-#variable "triton_node_count" {
-#    description = "The GPU pool node count"
-#    default     = 1
-#}
 
 variable "cpu_pool_node_count" {
     description = "The number of nodes in the default node pool"
@@ -85,7 +80,7 @@ variable "saxml_admin_pool_node_count" {
     default     = 3
 }
 
-variable "saxml_admic_pool_machine_type" {
+variable "saxml_admin_pool_machine_type" {
     description = "The machine type for the Saxml admin node pool"
     default = "e2-standard-8"
 }

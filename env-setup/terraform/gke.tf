@@ -28,7 +28,7 @@ module "gke" {
   name                       = var.cluster_name
   release_channel            = var.gke_release_channel
   kubernetes_version         = var.gke_version
-  regional                   = true 
+  region                     = var.region
   zones                      = [var.zone]
   network                    = google_compute_network.cluster_network.name
   subnetwork                 = google_compute_subnetwork.cluster_subnetwork.name
@@ -106,6 +106,7 @@ module "gke" {
 
   node_pools_taints = {
     all = []
+  }
 
 }
 
@@ -121,7 +122,7 @@ module "triton_workload_identity" {
   source       = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
   project_id   = data.google_project.project.project_id
   name         = var.saxml_sa_name 
-  namespace    = kubernetes_namespace.triton_namespace.metadata[0].name 
+  namespace    = kubernetes_namespace.saxml_namespace.metadata[0].name 
   roles        = var.saxml_sa_roles
 }
 
