@@ -16,6 +16,45 @@ WIP
 
 WIP
 
+### Initialize Terraform
+
+```
+export TF_STATE_BUCKET=jk-mlops-dev-tf-state
+export TF_STATE_PREFIX=gke-tpu-serving-environment
+
+terraform init
+
+```
+
+### Apply configuration
+
+```
+export PROJECT_ID=jk-mlops-dev
+export REGION=us-central2
+export ZONE=us-central2-b
+export SAXML_ADMIN_BUCKET_NAME=jk-saxml-admin-bucket
+export MODEL_REPOSITORY_BUCKET_NAME=jk-saxml-model-repository
+export NETWORK_NAME=jk-gke-network
+export SUBNET_NAME=jk-gke-subnet
+export CLUSTER_NAME=jk-saxml-cluster
+export NAMESPACE=saxml
+
+terraform apply \
+-var=project_id=$PROJECT_ID \
+-var=region=$REGION \
+-var=zone=$_ZONE
+-var=network_name=$NETWORK_NAME \
+-var=subnet_name=$_SUBNET_NAME \
+-var=cluster_name=$CLUSTER_NAME \
+-var=saxml_namespace=$NAMESPACE \
+-var=repository_bucket_name=$ARTIFACT_REPOSITORY_BUCKET_NAME \
+-var=saxml_admin_bucket_name=$SAXML_ADMIN_BUCKET_NAME 
+
+```
+
+
+
+
 ## Serving workloads examples
 
 WIP
