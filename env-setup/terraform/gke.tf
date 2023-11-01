@@ -102,6 +102,10 @@ module "gke" {
     cpu-node-pool = {
       default-node-pool = true
     }
+    
+    saxml-admin-node-pool = {
+     saxml-node-role = "admin" 
+    }
   }
 
   node_pools_taints = {

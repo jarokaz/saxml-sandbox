@@ -130,6 +130,44 @@ docker run \
 
 ```
 
+
+## Running saxutil from admin server
+```
+CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj-pax/checkpoint_00000000
+SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root
+SAX_CELL=/sax/test
+MODEL_NAME=gptjtokenizedbf16bs32
+MODEL_CONFIG_PATH=saxml.server.pax.lm.params.gptj.GPTJ4TokenizedBF16BS32
+REPLICA=1
+
+```
+### List models
+
+```
+saxutil ls $SAX_CELL
+```
+
+### Publish a model
+```
+
+saxutil \
+--sax_root=$SAX_ROOT \
+publish \
+${SAX_CELL}/${MODEL_NAME} \
+${MODEL_CONFIG_PATH} \
+${CHECKPOINT_PATH} \
+${REPLICA}
+```
+
+### Unpublish a model
+
+```
+saxutil \
+--sax_root=$SAX_ROOT \
+unpublish \
+${SAX_CELL}/${MODEL_NAME} 
+```
+
 # Archive
 
 

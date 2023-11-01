@@ -62,7 +62,7 @@ variable "cpu_pool_node_count" {
 
 variable "cpu_pool_machine_type" {
     description = "The machine type for the CPU node pool"
-    default = "e2-standard-8"
+    default = "n1-standard-8"
 }
 
 variable "cpu_pool_disk_size" {
@@ -82,7 +82,7 @@ variable "saxml_admin_pool_node_count" {
 
 variable "saxml_admin_pool_machine_type" {
     description = "The machine type for the Saxml admin node pool"
-    default = "e2-standard-8"
+    default = "n1-standard-8"
 }
 
 variable "saxml_admin_pool_disk_size" {
@@ -172,3 +172,30 @@ variable "asm_release_channel" {
     description = "GKE release channel"
     default = "stable"
 }
+
+variable "tpu_machine_type" {
+    description = "TPU machine type"
+    default = "ct4p-hightpu-4t"
+}
+
+variable "tpu_type" {
+    description = "TPU type"
+    default = "v4-16"
+}
+
+variable "tpu_node_pool_name_prefix" {
+    description = "TPU node pools name prefix"
+    default = "tpu-node-pool" 
+}
+
+variable "num_tpu_pools" {
+    description = "Number of TPU slices to create"
+    default = 1 
+}
+
+variable "enable_tpu_autoscaling" {
+    description = "Enable TPU autoscaling"
+    default = false 
+}
+
+
