@@ -95,6 +95,26 @@ variable "saxml_admin_pool_disk_type" {
     default = "pd-standard"
 }
 
+variable "saxml_converter_pool_node_count" {
+    description = "The number of nodes in the Saxml converter node pool"
+    default     = 3
+}
+
+variable "saxml_converter_pool_machine_type" {
+    description = "The machine type for the Saxml converter node pool"
+    default = "n2-highmem-32"
+}
+
+variable "saxml_converter_pool_disk_size" {
+    description = "Disk size for nodes in the Saxml converter node pool"
+    default = 200
+}
+
+variable "saxml_converter_pool_disk_type" {
+    description = "Disk typ on for nodes in the Saxml converter node pool"
+    default = "pd-standard"
+}
+
 variable "saxml_sa_name" {
     description = "The service account name for Saxml workload identity."
     default = "saxml-sa"

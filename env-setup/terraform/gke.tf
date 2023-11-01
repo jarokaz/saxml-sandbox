@@ -83,6 +83,23 @@ module "gke" {
       auto_upgrade              = true
       preemptible               = false
     },
+    {
+      name                      = "saxml-converter-node-pool"
+      machine_type              = var.saxml_converter_pool_machine_type 
+      node_locations            = var.zone
+      min_count                 = 0 
+      max_count                 = var.saxml_converter_pool_node_count
+      local_ssd_count           = 0
+      spot                      = false
+      disk_size_gb              = var.saxml_converter_pool_disk_size 
+      disk_type                 = var.saxml_converter_pool_disk_type
+      image_type                = "COS_CONTAINERD"
+      enable_gcfs               = false
+      enable_gvnic              = false
+      auto_repair               = true
+      auto_upgrade              = true
+      preemptible               = false
+    },
   ]
 
   node_pools_oauth_scopes = {
