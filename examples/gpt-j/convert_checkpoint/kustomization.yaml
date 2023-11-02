@@ -17,18 +17,15 @@ kind: Kustomization
 
 namespace: saxml
 
-nameSuffix: "singleslice-6b-105"
-
-images:
-- name: checkpoint-converter-image  
-  newName: gcr.io/jk-mlops-dev/checkpoint-converter
-  newTag: latest 
+nameSuffix: gptj6b
 
 configMapGenerator:
 - name: converter-parameters
   literals:
   - GS_BASE_CHECKPOINT_PATH=gs://jk-saxml-archive/checkpoints/gpt-j
   - GS_PAX_CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj-pax-1
+  - ARGS="convert_gptj_ckpt --base /checkpoints/base --pax /checkpoints/pax"
+  - CHECKPOINT_FOLDER_NAME=checkpoint_00000000
 
 resources:
-- jobspec.yaml
+- ../../converter_base 

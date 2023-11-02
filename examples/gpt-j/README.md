@@ -9,17 +9,12 @@ Download the checkpoint and stage it to GCS. Checkpoint location
 
 ### Convert the checkpoint
 
+Update the  `converter-parameters configMapGenerater` in  the `convert_checkpoint\kustomization.yaml` file as follows:
+- Set `GCS_BASE_CHECKPOINT_PATH` to the GCS location of the GTPJ-6B checkpoint you downloaded in the previous
+- Set `GCS_PAX_CHECKPOINT_PATH` to the GCS location where you want to store the converted checkpoint. 
+
+Start the conversion job:
+
 ```
-PROJECT_ID=jk-mlops-dev
-GPTJ_6B_CHECKPOINT=gs://jk-saxml-archive/checkpoints/gpt-j
-GPTJ_6B_PAX_CHECKPOINT=gs://jk-saxml-model-repository/checkpoints/gptj-6b-pax
-MACHINE_TYPE=e2-highmem-16
-
-
-gcloud builds submit \
---project $PROJECT_ID \
---config convert_gptj_checkpoint.yaml \
---substitutions _SOURCE_CHECKPOINT_PATH=$GPTJ_6B_CHECKPOINT,_DESTINATION_CHECKPOINT_PATH=$GPTJ_6B_PAX_CHECKPOINT \
---machine-type=$MACHINE_TYPE \
---quiet
+kubectl apply -k convert_checkpoint
 ```

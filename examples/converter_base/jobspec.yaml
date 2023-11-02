@@ -15,7 +15,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: convert 
+  name: convert-checkpoint- 
 spec:
   backoffLimit: 0
   completions: 1
@@ -34,13 +34,17 @@ spec:
         - bash 
         - -c
         - |
-            mkdir /data/checkpoints/base
-            mkdir /data/checkpoints/pax
-            gsutil -m cp -r ${GS_BASE_CHECKPOINT_PATH}/* /data/checkpoints/base
-            python3 -m convert_gptj_ckpt --base /data/checkpoints/base --pax /data/checkpoints/pax
-            CHECKPOINT_FOLDER_NAME=checkpoint_00000000
+            # Download a base checkpoint from GCS
+            mkdir /checkpoints/base
+            mkdir /checkpoints/pax
+            gsutil -m cp -r ${GS_BASE_CHECKPOINT_PATH}/* /checkpoints/base
+            
+            # Convert the checkpoint
+            python3 -m ${ARGS} 
+            
+            # Upload the converted checkpoint to GCS
             GS_CHECKPOINT_PATH=${GS_PAX_CHECKPOINT_PATH}/${CHECKPOINT_FOLDER_NAME}
-            gsutil -m cp -r /data/checkpoints/pax/$CHECKPOINT_FOLDER_NAME ${GS_CHECKPOINT_PATH}
+            gsutil -m cp -r /checkpoints/pax/${CHECKPOINT_FOLDER_NAME} ${GS_CHECKPOINT_PATH}
             touch commit_success.txt
             gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/
             gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/metadata/
@@ -48,7 +52,7 @@ spec:
 
         volumeMounts:
         - name: staging
-          mountPath: /data/checkpoints
+          mountPath: /checkpoints
         envFrom:
         - configMapRef:
             name: converter-parameters
