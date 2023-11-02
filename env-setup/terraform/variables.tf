@@ -124,6 +124,8 @@ variable "saxml_sa_roles" {
   description = "The roles to assign to the Saxml service account"
   default = [
     "roles/storage.objectAdmin",
+    "roles/storage.admin",
+    "roles/logging.logWriter",
     ] 
 }
 
@@ -174,7 +176,6 @@ variable "gke_sa_roles" {
   default = [
     "storage.objectAdmin",
     "logging.logWriter",
-    "aiplatform.user",
     ] 
 }
 
