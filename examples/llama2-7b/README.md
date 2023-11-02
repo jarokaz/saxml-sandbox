@@ -68,6 +68,9 @@ ${CHECKPOINT_PATH} \
 ${REPLICA}
 ```
 
+
+
+
 This may take a while. Monitor the model server pod till the model loading is completed. 
 
 ```

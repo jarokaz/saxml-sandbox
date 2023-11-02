@@ -32,10 +32,10 @@ configMapGenerator:
 images:
 - name: saxml-admin-server-image
   newName: us-docker.pkg.dev/cloud-tpu-images/inference/sax-admin-server
-  newTag: v1.0.0
+  newTag: v1.1.0
 - name: saxml-model-server-image 
   newName: us-docker.pkg.dev/cloud-tpu-images/inference/sax-model-server
-  newTag: v1.0.0
+  newTag: v1.1.0
 
 resources:
 - saxml-admin-deployment.yaml
