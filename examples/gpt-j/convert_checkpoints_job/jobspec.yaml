@@ -23,6 +23,9 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      volumes:
+      - name: staging
+        emptyDir: {}
       containers:
       - name: convert-job
         image: checkpoint-converter-image  
@@ -30,7 +33,14 @@ spec:
         - bash 
         - -c
         - |
-            echo Hello 
+            mkdir /data/checkpoints/base
+            mkdir /data/checkpoints/pax
+            gsutil -m cp -r ${BASE_CHECKPOINT_PATH}/* /data/checkpoints/base
+            python3 -m convert_gptj_ckpt --base /data/checkpoints/base --pax /data/checkpoints/pax
+            gsutil -m cp -r /data/checkpoints/pax/* ${PAX_CHECKPOINT_PATH}
+        volumeMounts:
+        - name: staging
+          mountPath: /data/checkpoints
         resources:
           requests:
             memory: 112G 
