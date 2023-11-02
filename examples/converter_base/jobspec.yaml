@@ -34,21 +34,34 @@ spec:
         - bash 
         - -c
         - |
-            # Download a base checkpoint from GCS
+            echo Starting checkpoint download 
             mkdir /checkpoints/base
             mkdir /checkpoints/pax
             gsutil -m cp -r ${GS_BASE_CHECKPOINT_PATH}/* /checkpoints/base
+
+            if [ $? -ne 0 ]; then
+                echo ERROR downloading the checkpoint
+                exit 
+            fi
+
+            echo Checkpoint download completed 
+
+            echo Starting checkpoint conversion 
+            python3 -m ${CONV_MODULE} --base /checkpoints/base --pax /checkpoints/pax ${ARGS}
+            if [ $? -ne 0 ]; then
+                echo ERROR converting checkpoints 
+                exit 
+            fi 
+            echo Checkpoint conversion completed 
             
-            # Convert the checkpoint
-            python3 -m ${ARGS} 
-            
-            # Upload the converted checkpoint to GCS
+            echo Starting checkpoint upload 
             GS_CHECKPOINT_PATH=${GS_PAX_CHECKPOINT_PATH}/${CHECKPOINT_FOLDER_NAME}
-            gsutil -m cp -r /checkpoints/pax/${CHECKPOINT_FOLDER_NAME} ${GS_CHECKPOINT_PATH}
+            gsutil -m cp -r /checkpoints/pax/${CHECKPOINT_FOLDER_NAME}/* ${GS_CHECKPOINT_PATH}/
             touch commit_success.txt
             gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/
             gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/metadata/
             gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/state/
+            echo Checkpoint upload completed
 
         volumeMounts:
         - name: staging

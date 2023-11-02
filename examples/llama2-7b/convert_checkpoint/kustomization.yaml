@@ -17,14 +17,15 @@ kind: Kustomization
 
 namespace: saxml
 
-nameSuffix: gptj6b
+nameSuffix: llama7b 
 
 configMapGenerator:
 - name: converter-parameters
   literals:
-  - GS_BASE_CHECKPOINT_PATH=gs://jk-saxml-archive/checkpoints/llama-7b
+  - GS_BASE_CHECKPOINT_PATH=gs://jk-saxml-archive/checkpoints/llama/llama-2-7b
   - GS_PAX_CHECKPOINT_PATH=gs://jk-saxml-model-repository/pax-llama-7b
-  - CONV_MODULE="convert_gptj_ckpt "
+  - CONV_MODULE=convert_llama_ckpt
+  - ARGS="--model-size=7b"
   - CHECKPOINT_FOLDER_NAME=checkpoint_00000000
 
 resources:
