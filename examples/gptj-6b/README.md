@@ -108,7 +108,8 @@ If successful the above command should return a list of tokens representing prom
 
 #### Unpublish the model
 
-If you want to unpublish the model
+
+To unpublish the model
 
 ```
 saxutil \
