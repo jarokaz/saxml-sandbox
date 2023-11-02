@@ -36,9 +36,16 @@ spec:
         - |
             mkdir /data/checkpoints/base
             mkdir /data/checkpoints/pax
-            gsutil -m cp -r ${BASE_CHECKPOINT_PATH}/* /data/checkpoints/base
+            gsutil -m cp -r ${GS_BASE_CHECKPOINT_PATH}/* /data/checkpoints/base
             python3 -m convert_gptj_ckpt --base /data/checkpoints/base --pax /data/checkpoints/pax
-            gsutil -m cp -r /data/checkpoints/pax/* ${PAX_CHECKPOINT_PATH}
+            CHECKPOINT_FOLDER_NAME=checkpoint_00000000
+            GS_CHECKPOINT_PATH=${GS_PAX_CHECKPOINT_PATH}/${CHECKPOINT_FOLDER_NAME}
+            gsutil -m cp -r /data/checkpoints/pax/$CHECKPOINT_FOLDER_NAME ${GS_CHECKPOINT_PATH}
+            touch commit_success.txt
+            gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/
+            gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/metadata/
+            gsutil cp commit_success.txt ${GS_CHECKPOINT_PATH}/state/
+
         volumeMounts:
         - name: staging
           mountPath: /data/checkpoints

@@ -27,8 +27,8 @@ images:
 configMapGenerator:
 - name: converter-parameters
   literals:
-  - BASE_CHECKPOINT_PATH=gs://jk-saxml-archive/checkpoints/gpt-j
-  - PAX_CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj-pax-1
+  - GS_BASE_CHECKPOINT_PATH=gs://jk-saxml-archive/checkpoints/gpt-j
+  - GS_PAX_CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj-pax-1
 
 resources:
 - jobspec.yaml
