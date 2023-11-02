@@ -1,20 +1,105 @@
-## Inferencing on GPTJ-6B model
+# Deploying GPTJ-6B model
 
-### Download the GTPJ-6B checkpoint
+## Download the GTPJ-6B checkpoint
 
 Download the checkpoint and stage it to GCS. Checkpoint location
 
 `https://cloud.mlcommons.org/index.php/s/QAZ2oM94MkFtbQx/download`
 
 
-### Convert the checkpoint
+## Convert the checkpoint
 
 Update the  `converter-parameters configMapGenerater` in  the `convert_checkpoint\kustomization.yaml` file as follows:
-- Set `GCS_BASE_CHECKPOINT_PATH` to the GCS location of the GTPJ-6B checkpoint you downloaded in the previous
+- Set `GCS_BASE_CHECKPOINT_PATH` to the GCS location of the GTPJ-6B checkpoint you downloaded in the previous step
 - Set `GCS_PAX_CHECKPOINT_PATH` to the GCS location where you want to store the converted checkpoint. 
 
 Start the conversion job:
 
 ```
 kubectl apply -k convert_checkpoint
+```
+
+## Publish the model
+
+### Run shell in sax admin server
+
+List pods
+
+```
+kubectl get pods -n <YOUR NAMESPACE>
+```
+
+Execute shell on the server
+
+```
+kubectl exec -it <SAX ADMIN POD> -n <YOUR NAMESPACE> -- /bin/bash
+```
+
+### Publish the model
+
+#### Set parameters
+
+```
+CHECKPOINT_PATH=gs://<CHECKPOINT_PATH>
+CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj-pax-1/checkpoint_00000000
+SAX_ROOT=gs://<SAX ADMIN BUCKET>/sax-root
+SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root
+SAX_CELL=/sax/test
+MODEL_NAME=gptjtokenizedbf16bs32
+MODEL_CONFIG_PATH=saxml.server.pax.lm.params.gptj.GPTJ4TokenizedBF16BS32
+REPLICA=1
+```
+
+#### List published models
+
+```
+saxutil ls $SAX_CELL
+
+```
+
+#### Publish model
+
+```
+saxutil \
+--sax_root=$SAX_ROOT \
+publish \
+${SAX_CELL}/${MODEL_NAME} \
+${MODEL_CONFIG_PATH} \
+${CHECKPOINT_PATH} \
+${REPLICA}
+```
+
+This may take a while. Monitor the model server pod till the model loading is completed. 
+
+```
+kubectl logs <SAX MODEL SERVER POD> -n <YOUR NAMESPACE>
+```
+
+Wait till you see a similar message:
+
+```
+I1102 14:15:00.962680 134004674082368 servable_model.py:697] loading completed.
+```
+
+#### Run smoke test
+
+```
+INPUT_STR="21106,318,281,12064,326,8477,257,4876,11,20312,351,281,5128,326,3769,2252,4732,13,19430,257,2882,326,20431,32543,262,2581,13,198,198,21017,46486,59,25,198,13065,3876,1096,262,1708,1705,2708,59,25,198,198,21017,23412,59,25,198,16192,838,11,1853,764,775,821,4988,3230,287,8354,319,3431,13,775,821,10013,8031,11,3284,11,262,1578,4498,24880,11,290,262,42438,22931,21124,13,9938,503,508,338,9361,284,2498,4182,615,10055,262,13342,287,257,6614,13232,12387,416,262,4252,11,290,7301,262,11428,5585,286,1067,8605,287,7840,7229,13,921,1183,635,651,257,1570,286,5628,41336,326,373,4271,10395,329,39311,13,1550,428,2443,345,481,1064,1909,338,905,42978,290,257,1295,329,345,284,2581,284,307,319,262,8100,13613,3000,8299,4889,13,48213,6173,46023,764,6914,994,284,1895,262,14687,286,1909,338,8100,13613,3000,1430,13,4222,3465,326,612,743,307,257,5711,1022,262,640,618,262,2008,318,1695,290,618,262,14687,318,3199,13,8100,13613,3000,318,2727,416,257,1074,286,9046,508,2074,262,8070,7231,1812,20130,11,2260,5423,287,1180,2426,3006,11,290,1181,5423,618,9194,262,905,13,15107,3069,42815,764,1114,257,2863,284,307,4750,319,262,1306,8100,13613,3000,11,2912,319,262,4220,286,428,2443,351,534,1524,1438,11,37358,11,1748,290,1181,13,775,481,307,17246,4266,422,262,3651,286,262,2180,905,13,921,1276,307,257,4701,393,257,3710,2479,1511,393,4697,284,2581,257,3068,319,262,8100,13613,3000,8299,4889,0,6952,345,329,1262,8100,13613,3000,0,198,198,21017,18261,59,25"
+
+saxutil \
+--sax_root=$SAX_ROOT \
+lm.generate \
+${SAX_CELL}/${MODEL_NAME} \
+${INPUT_STR}
+```
+
+#### Unpublish the model
+
+If you want to unpublish the model
+
+```
+saxutil \
+--sax_root=$SAX_ROOT \
+unpublish \
+${SAX_CELL}/${MODEL_NAME} 
 ```

@@ -133,7 +133,7 @@ docker run \
 
 ## Running saxutil from admin server
 ```
-CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj-pax/checkpoint_00000000
+CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj-pax-1/checkpoint_00000000
 SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root
 SAX_CELL=/sax/test
 MODEL_NAME=gptjtokenizedbf16bs32
