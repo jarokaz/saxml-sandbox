@@ -19,7 +19,7 @@ steps:
     args:
       - -c
       - |
-          docker build -f --build-arg CLOUD_SDK_VERSION=$_CLOUD_SDK_VERSION --build-arg PAXML_VERSION=$_PAXML_VERSION -f Dockerfile.checkpoint_converter -t $_CONVERTER_IMAGE_URI .
+          docker build  --build-arg CLOUD_SDK_VERSION=$_CLOUD_SDK_VERSION --build-arg PAXML_VERSION=$_PAXML_VERSION -f Dockerfile.checkpoint_converter -t $_CONVERTER_IMAGE_URI .
   
 images:
   - $_CONVERTER_IMAGE_URI:latest

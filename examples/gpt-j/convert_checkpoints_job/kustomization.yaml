@@ -15,12 +15,19 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+nameSuffix: "singleslice-6b-105"
+
 images:
 - name: checkpoint-converter-image 
-  newName: gcr.io/jk-mlops-dev/checkpoint-converter
-  newTag: latest
-- name: tb-uploader-image
-  newName: gcr.io/jk-mlops-dev/tb-uploader
-  newTag: latest 
+#  newName: gcr.io/jk-mlops-dev/checkpoint-converter
+  name: python
+  newTag: "3.10"
 
-nameSuffix: "singleslice-6b-105"
+configMapGenerator:
+- name: converter-parameters
+  literals:
+  - BASE_CHECKPOINT_PATH=gs://jk-saxml-model-repository/gptj
+  - PAX_CHECKPOINT_PATH=gs://jk-saxml-model-repository/blbabl
+
+resources:
+- jobspec.yaml

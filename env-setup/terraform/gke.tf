@@ -111,6 +111,10 @@ module "gke" {
     saxml-admin-node-pool = [
         "https://www.googleapis.com/auth/cloud-platform", 
     ]
+
+    saxml-converter-node-pool = [
+        "https://www.googleapis.com/auth/cloud-platform", 
+    ]
   }
 
   node_pools_labels = {
