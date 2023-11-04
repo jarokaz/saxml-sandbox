@@ -44,6 +44,9 @@ resources:
 - saxml-admin-deployment.yaml
 - saxml-model-server-deployment.yaml
 - saxml-util-deployment.yaml
+- jupyterlab-service.yaml
+- jupyterlab-deployment.yaml
+
 #- ingress-gateway.yaml
 #- virtual-service.yaml
 #- destination-rule.yaml

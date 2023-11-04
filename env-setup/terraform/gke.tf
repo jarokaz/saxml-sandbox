@@ -106,15 +106,9 @@ module "gke" {
     all = [
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/cloud-platform", 
     ]
 
-    saxml-admin-node-pool = [
-        "https://www.googleapis.com/auth/cloud-platform", 
-    ]
-
-    saxml-converter-node-pool = [
-        "https://www.googleapis.com/auth/cloud-platform", 
-    ]
   }
 
   node_pools_labels = {
@@ -151,7 +145,7 @@ resource "kubernetes_namespace" "saxml_namespace" {
 }
 
 
-module "triton_workload_identity" {
+module "workload_identity" {
   source       = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
   project_id   = data.google_project.project.project_id
   name         = var.saxml_sa_name 
@@ -160,16 +154,16 @@ module "triton_workload_identity" {
 }
 
 
-module "asm" {
-  source                    = "terraform-google-modules/kubernetes-engine/google//modules/asm"
-  project_id                = data.google_project.project.project_id
-  cluster_name              = module.gke.name
-  cluster_location          = module.gke.location
-  enable_cni                = false
-  enable_fleet_registration = true
-  enable_mesh_feature       = false 
-  channel                   = var.asm_release_channel
-}
+#module "asm" {
+#  source                    = "terraform-google-modules/kubernetes-engine/google//modules/asm"
+#  project_id                = data.google_project.project.project_id
+#  cluster_name              = module.gke.name
+#  cluster_location          = module.gke.location
+#  enable_cni                = false
+#  enable_fleet_registration = true
+#  enable_mesh_feature       = false 
+#  channel                   = var.asm_release_channel
+#}
 
 
 

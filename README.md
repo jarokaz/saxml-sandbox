@@ -56,6 +56,38 @@ terraform apply \
 
 ```
 
+### Destroy
+
+
+```
+
+export PROJECT_ID=jk-mlops-dev
+export REGION=us-central2
+export ZONE=us-central2-b
+export SAXML_ADMIN_BUCKET_NAME=jk-saxml-admin-bucket
+export MODEL_REPOSITORY_BUCKET_NAME=jk-saxml-model-repository
+export NETWORK_NAME=jk-gke-network
+export SUBNET_NAME=jk-gke-subnet
+export CLUSTER_NAME=jk-saxml-cluster
+export NAMESPACE=saxml
+export TPU_TYPE=v4-8
+export NUM_TPU_POOLS=1
+
+terraform destroy \
+-var=project_id=$PROJECT_ID \
+-var=cluster_name=$CLUSTER_NAME \
+-var=region=$REGION \
+-var=zone=$ZONE \
+-var=network_name=$NETWORK_NAME \
+-var=subnet_name=$SUBNET_NAME \
+-var=saxml_namespace=$NAMESPACE \
+-var=repository_bucket_name=$MODEL_REPOSITORY_BUCKET_NAME \
+-var=saxml_admin_bucket_name=$SAXML_ADMIN_BUCKET_NAME \
+-var=tpu_type=$TPU_TYPE \
+-var=num_tpu_pools=$NUM_TPU_POOLS
+
+```
+
 
 
 

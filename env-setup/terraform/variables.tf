@@ -168,7 +168,7 @@ variable "max_pods_per_node" {
 
 variable "gke_sa_name" {
     description = "The service account name for GKE node pools"
-    default = "gke-sa"
+    default = "gke-saxml-sa"
 }
 
 variable "gke_sa_roles" {
