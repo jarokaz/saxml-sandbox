@@ -36,10 +36,14 @@ images:
 - name: saxml-model-server-image 
   newName: us-docker.pkg.dev/cloud-tpu-images/inference/sax-model-server
   newTag: v1.1.0
+- name: saxml-util-image
+  newName: us-docker.pkg.dev/cloud-tpu-images/inference/sax-util
+  newTag: v1.1.0
 
 resources:
 - saxml-admin-deployment.yaml
 - saxml-model-server-deployment.yaml
+- saxml-util-deployment.yaml
 #- ingress-gateway.yaml
 #- virtual-service.yaml
 #- destination-rule.yaml

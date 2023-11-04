@@ -12,44 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: saxml-admin-server
+  name: saxml-util
   labels:
-    app: saxml-admin-server 
+    app: saxml-util 
     version: v1 
 spec:
   replicas: 1 
   selector:
     matchLabels:
-      app: saxml-admin-server 
+      app: saxml-util 
       version: v1
   template:
     metadata:
       labels:
-        app: saxml-admin-server 
+        app: saxml-util 
         version: v1
     spec:
-      hostNetwork: false
-      serviceAccountName: sax-sa
       nodeSelector:
-        saxml-admin-node-pool: "true"
-      tolerations:
-      - key: "saxml-admin-node-pool"
-        operator: "Exists"
-        effect: "NoSchedule"
+        cloud.google.com/gke-tpu-topology: 2x2x1 
+        cloud.google.com/gke-tpu-accelerator: tpu-v4-podslice 
+      hostNetwork: false
       containers:
-        - name: saxml-admin-server
-          image: saxml-admin-server-image
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            privileged: true
-          envFrom:
-          - configMapRef:
-              name: saxml-parameters
-          ports:
-            - containerPort: 1000 
-              name: admin-port 
-            - containerPort: 8080
-              name: http 
+        - name: saxml-util
+          image: us-docker.pkg.dev/cloud-tpu-images/inference/sax-util:v1.1.0
+          command: ["tail", "-f", "/dev/null"]
+#          resources:
+#            requests:
+#              google.com/tpu: 4 
+#            limits:
+#              google.com/tpu: 4 

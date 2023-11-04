@@ -125,12 +125,20 @@ module "gke" {
     }
     
     saxml-admin-node-pool = {
-     saxml-node-role = "admin" 
+      saxml-admin-node-pool = true
     }
   }
 
   node_pools_taints = {
     all = []
+
+    saxml-admin-node-pool = [
+      {
+        key = "saxml-admin-node-pool" 
+        value = true
+        effect = "NO_SCHEDULE"
+      }
+    ] 
   }
 
 }

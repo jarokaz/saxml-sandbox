@@ -12,44 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: saxml-admin-server
+  name: saxml-util
   labels:
-    app: saxml-admin-server 
+    app: saxml-util 
     version: v1 
 spec:
   replicas: 1 
   selector:
     matchLabels:
-      app: saxml-admin-server 
+      app: saxml-util 
       version: v1
   template:
     metadata:
       labels:
-        app: saxml-admin-server 
+        app: saxml-util 
         version: v1
     spec:
       hostNetwork: false
       serviceAccountName: sax-sa
-      nodeSelector:
-        saxml-admin-node-pool: "true"
-      tolerations:
-      - key: "saxml-admin-node-pool"
-        operator: "Exists"
-        effect: "NoSchedule"
       containers:
-        - name: saxml-admin-server
-          image: saxml-admin-server-image
+        - name: saxml-util
+          image: saxml-util-image
           imagePullPolicy: IfNotPresent
-          securityContext:
-            privileged: true
           envFrom:
           - configMapRef:
               name: saxml-parameters
-          ports:
-            - containerPort: 1000 
-              name: admin-port 
-            - containerPort: 8080
-              name: http 
+          command: ["tail", "-f", "/dev/null"]
