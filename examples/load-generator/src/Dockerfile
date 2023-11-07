@@ -20,8 +20,8 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.
 RUN apt -y update && apt install -y bazel-5.4.0 google-cloud-cli
 RUN update-alternatives --install /usr/bin/bazel bazel /usr/bin/bazel-5.4.0 20
 
-RUN pip3 install -U pip numpy
-RUN pip3 install --upgrade google-api-python-client
+RUN pip3 install -U pip numpy 
+RUN pip3 install --upgrade google-api-python-client 
 
 WORKDIR saxml
 
@@ -32,6 +32,3 @@ ENV PYTHONPATH "${PYTHONPATH}:/saxml/bazel-bin/saxml/client/python"
 WORKDIR /app
 
 COPY . .
-
-
-CMD ["tail", "-f", "/dev/null"]

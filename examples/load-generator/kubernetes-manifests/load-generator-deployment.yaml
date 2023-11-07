@@ -6,20 +6,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: python-hello-world
+  name: load-generator 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: python-hello-world
+      app: load-generator 
   template:
     metadata:
       labels:
-        app: python-hello-world
+        app: load-generator 
     spec:
       containers:
-      - name: server
-        image: gcr.io/jk-mlops-dev/load-generator 
+      - name: load-generator 
+        image: load-generator 
+        command: ["tail", "-f", "/dev/null"]
 #        ports:
 #        - containerPort: 8080
 #        env:
