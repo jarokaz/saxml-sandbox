@@ -27,6 +27,8 @@ WORKDIR saxml
 
 RUN bazel build saxml/client/python:sax.cc --compile_one_dependency
 
+RUN pip install pandas
+
 ENV PYTHONPATH "${PYTHONPATH}:/saxml/bazel-bin/saxml/client/python"
 
 WORKDIR /app

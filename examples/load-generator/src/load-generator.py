@@ -92,6 +92,4 @@ if __name__ == '__main__':
   print("Starting")
   main()
 
-  print('blablalb')
-
-  print('ssss')
+  print('blb b')

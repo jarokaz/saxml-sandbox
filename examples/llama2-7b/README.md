@@ -30,7 +30,7 @@ kubectl get pods -n <YOUR NAMESPACE>
 Execute shell on the server
 
 ```
-kubectl exec -it <SAX ADMIN POD> -n <YOUR NAMESPACE> -- /bin/bash
+kubectl exec -it <SAX UTIL POD> -n <YOUR NAMESPACE> -- /bin/bash
 ```
 
 ### Publish the model

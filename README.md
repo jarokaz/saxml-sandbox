@@ -14,11 +14,15 @@ WIP
 
 ## Environment setup
 
+### Provision infrastructure
+
 WIP
 
-### Initialize Terraform
+#### Initialize Terraform
 
 ```
+cd env-setup/infra_terraform
+
 export TF_STATE_BUCKET=jk-mlops-dev-tf-state
 export TF_STATE_PREFIX=gke-tpu-serving-environment
 
@@ -26,7 +30,7 @@ terraform init -backend-config="bucket=$TF_STATE_BUCKET" -backend-config="prefix
 
 ```
 
-### Apply configuration
+#### Apply configuration
 
 ```
 export PROJECT_ID=jk-mlops-dev
@@ -56,11 +60,9 @@ terraform apply \
 
 ```
 
-### Destroy
-
+#### Destroy infrastructure
 
 ```
-
 export PROJECT_ID=jk-mlops-dev
 export REGION=us-central2
 export ZONE=us-central2-b
@@ -88,6 +90,24 @@ terraform destroy \
 
 ```
 
+### Deploy Saxml
+
+```
+PROJECT_ID=jk-mlops-dev
+CONVERTER_IMAGE_URI=gcr.io/$PROJECT_ID/checkpoint-converter
+MACHINE_TYPE=e2-highcpu-8
+PAXML_VERSION=1.2.0
+CLOUD_SDK_VERSION=google-cloud-cli-453.0.0-linux-x86_64.tar.gz
+
+
+gcloud builds submit \
+--project $PROJECT_ID \
+--config build.yaml \
+--substitutions _CONVERTER_IMAGE_URI=$CONVERTER_IMAGE_URI,_PAXML_VERSION=$PAXML_VERSION,_CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION \
+--machine-type=$MACHINE_TYPE \
+--quiet
+
+```
 
 
 
