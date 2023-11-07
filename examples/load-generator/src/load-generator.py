@@ -91,6 +91,5 @@ def main():
 if __name__ == '__main__':
   print("Starting")
   main()
-  print("Ending")
-  print("And more ending")
-  print("And even more enging")
+
+  print('blablalb')
