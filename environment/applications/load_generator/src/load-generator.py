@@ -1,16 +1,17 @@
 #import tensorflow as tf
 import os, sys
-#import numpy as np
-#import threading
+import numpy as np
+import threading
 import multiprocessing as mp
 import time
 import argparse
+import pandas
 
-#from transformers import LlamaTokenizer
-#import huggingface_hub
-#HUGGINGFACE_TOKEN="XXXXXX"
-#huggingface_hub.login(token=HUGGINGFACE_TOKEN)
-#tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf") 
+from transformers import LlamaTokenizer
+import huggingface_hub
+HUGGINGFACE_TOKEN="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"
+huggingface_hub.login(token=HUGGINGFACE_TOKEN)
+tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf") 
 
 
 import sax
@@ -48,26 +49,12 @@ def main():
   parser.add_argument('-t', '--num_threads', type=int, default=1)
   args = parser.parse_args()
 
-  model_id = args.model
-  #model_details = sax.ListDetail(model_id)
-  #print(model_details.model)
-  #print(model_details.active_replicas)
-  #print(f'Loading model: {model_id}')
-  model = sax.Model(model_id)
-  lm_model = model.LM()
-
-  print('Invoking the model')
-  options = sax.ModelOptions()
-  options.SetExtraInput("per_example_max_decode_steps", 128)  
-  prompt = "Who is Harry Potter's mother?"
-  response = lm_model.Generate(prompt, options)
-  print(f"Response: {response}")
-
-
-  #register_sax_model(args.model)
-  #prompts = create_prompt_data(args.data)
-  #num_prompts = args.num_batches * args.batch_size
-  #prompts = prompts[:num_prompts]
+  register_sax_model(args.model)
+  prompts = create_prompt_data(args.data)
+  num_prompts = args.num_batches * args.batch_size
+  prompts = prompts[:num_prompts]
+ 
+  print(prompts)
 
   #start = time.time()
   #batched_data = []
