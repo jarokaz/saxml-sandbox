@@ -17,10 +17,14 @@ spec:
       labels:
         app: load-generator 
     spec:
+      serviceAccountName: sax-sa
       containers:
       - name: load-generator 
         image: load-generator 
         command: ["tail", "-f", "/dev/null"]
+        envFrom:
+          - configMapRef:
+              name: saxml-parameters
 #        ports:
 #        - containerPort: 8080
 #        env:

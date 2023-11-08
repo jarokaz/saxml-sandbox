@@ -17,6 +17,10 @@ kind: Kustomization
 
 namespace: saxml
 
+configMapGenerator:
+  - name: saxml-parameters 
+    envs:
+    - parameters.env
 
 images:
 - name: load-generator
@@ -25,3 +29,15 @@ images:
 
 resources:
 - load-generator-deployment.yaml
+
+
+replacements:
+- source:
+    fieldPath: data.KSA
+    kind: ConfigMap
+    name: saxml-parameters 
+  targets:
+  - fieldPaths:
+    - spec.template.spec.serviceAccountName
+    select:
+      kind: Deployment

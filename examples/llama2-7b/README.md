@@ -44,6 +44,7 @@ SAX_ROOT=gs://SAX_ADMIN_BUCKET/sax-root
 SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root
 SAX_CELL=/sax/test
 
+
 MODEL_NAME=llama7bfp16tpuv5e
 MODEL_CONFIG_PATH=saxml.server.pax.lm.params.lm_cloud.LLaMA7BFP16TPUv5e
 REPLICA=1
@@ -59,9 +60,7 @@ saxutil ls $SAX_CELL
 #### Publish model
 
 ```
-saxutil \
---sax_root=$SAX_ROOT \
-publish \
+saxutil  publish \
 ${SAX_CELL}/${MODEL_NAME} \
 ${MODEL_CONFIG_PATH} \
 ${CHECKPOINT_PATH} \
