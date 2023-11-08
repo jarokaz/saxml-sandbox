@@ -21,7 +21,7 @@ WIP
 #### Initialize Terraform
 
 ```
-cd env-setup/infra_terraform
+cd environment/infrastructure
 
 export TF_STATE_BUCKET=jk-mlops-dev-tf-state
 export TF_STATE_PREFIX=gke-tpu-serving-environment
@@ -90,9 +90,12 @@ terraform destroy \
 
 ```
 
-### Deploy Saxml
+### Deploy Saxml on GKE application components 
 
 ```
+
+cd environment/applications
+
 PROJECT_ID=jk-mlops-dev
 CONVERTER_IMAGE_URI=gcr.io/$PROJECT_ID/checkpoint-converter
 MACHINE_TYPE=e2-highcpu-8

@@ -21,7 +21,6 @@ steps:
       - |
           echo Build variables:
           echo -------------------------------------------
-          echo _CONTAINER_REGISTRY_PREFIX=$_CONTAINER_REGISTRY_PREFIX
           echo _CLOUD_SDK_VERSION=$_CLOUD_SDK_VERSION
           echo _PAXML_VERSION=$_PAXML_VERSION
           echo _CONVERTER_IMAGE_URI=$_CONVERTER_IMAGE_URI
@@ -32,7 +31,7 @@ steps:
     args:
     - -c
     - |
-      docker build --build-arg CLOUD_SDK_VERSION=$_CLOUD_SDK_VERSION --build-arg PAXML_VERSION=$_PAXML_VERSION -f env_setup Dockerfile.checkpoint_converter -t $_CONVERTER_IMAGE_URI .
+      docker build --build-arg CLOUD_SDK_VERSION=$_CLOUD_SDK_VERSION --build-arg PAXML_VERSION=$_PAXML_VERSION -f checkpoint_converter/Dockerfile -t $_CONVERTER_IMAGE_URI .
 
 #  - id: Clone Saxml repo 
 #    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'

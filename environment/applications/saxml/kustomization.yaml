@@ -19,15 +19,8 @@ namespace: saxml
 
 configMapGenerator:
   - name: saxml-parameters 
-    literals:
-    - GSBUCKET=jk-saxml-admin-bucket
-    - KSA=saxml-sa
-    - SAX_CELL=/sax/test 
-    - SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root
-    - TPU_CHIP=tpuv4
-    - TPU_TYPE=tpu-v4-podslice
-    - TPU_TOPOLOGY=2x2x1
-    - CHIPS_PER_NODE=4
+    envs:
+    - parameters.env
 
 images:
 - name: saxml-admin-server-image
