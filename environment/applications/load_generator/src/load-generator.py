@@ -49,17 +49,19 @@ def main():
   args = parser.parse_args()
 
   model_id = args.model
-  sax.ListDetail(model_id)
+  #model_details = sax.ListDetail(model_id)
+  #print(model_details.model)
+  #print(model_details.active_replicas)
   #print(f'Loading model: {model_id}')
-  #model = sax.Model(model_id)
-  #lm_model = model.LM()
+  model = sax.Model(model_id)
+  lm_model = model.LM()
 
-  #print('Invoking the model')
-  #options = sax.ModelOptions()
-  #options.SetExtraInput("per_example_max_decode_steps", 128)  
-  #prompt = "Who is Harry Potter's mother?"
-  #response = lm_model.Generate(prompt, options)
-  #print("Response: {response}")
+  print('Invoking the model')
+  options = sax.ModelOptions()
+  options.SetExtraInput("per_example_max_decode_steps", 128)  
+  prompt = "Who is Harry Potter's mother?"
+  response = lm_model.Generate(prompt, options)
+  print(f"Response: {response}")
 
 
   #register_sax_model(args.model)

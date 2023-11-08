@@ -68,15 +68,18 @@ RUN git clone https://github.com/google/saxml.git && \
     cd saxml && \
     git checkout r1.1.0 
 
-WORKDIR saxml
+RUN pip3 install -U pip
+RUN pip3 install --upgrade numpy google-api-python-client
 
-RUN bazel build saxml/bin:admin_config
-RUN bazel build saxml/bin:admin_server
-RUN bazel build saxml/bin:saxutil
-RUN bazel build saxml/server:server
+WORKDIR saxml
+RUN bazel build saxml/client/python:sax.cc --compile_one_dependency
 
 WORKDIR /app
-
 COPY . .
+
+ENV PYTHONPATH "${PYTHONPATH}:/saxml/bazel-bin/saxml/client/python"
+#ENV PYTHONUNBUFFERED 1
+
+
 
 CMD ["/bin/bash"]
