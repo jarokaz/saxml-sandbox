@@ -17,6 +17,7 @@ spec:
       labels:
         app: load-generator 
     spec:
+      hostNetwork: false
       serviceAccountName: sax-sa
       containers:
       - name: load-generator 

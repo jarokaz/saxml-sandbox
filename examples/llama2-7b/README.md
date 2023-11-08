@@ -43,8 +43,6 @@ CHECKPOINT_PATH=gs://jk-saxml-model-repository/pax-llama-7b/checkpoint_00000000
 SAX_ROOT=gs://SAX_ADMIN_BUCKET/sax-root
 SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root
 SAX_CELL=/sax/test
-
-
 MODEL_NAME=llama7bfp16tpuv5e
 MODEL_CONFIG_PATH=saxml.server.pax.lm.params.lm_cloud.LLaMA7BFP16TPUv5e
 REPLICA=1
