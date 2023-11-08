@@ -65,6 +65,17 @@ ${CHECKPOINT_PATH} \
 ${REPLICA}
 ```
 
+#### Publish model
+
+```
+saxutil  publish \
+${SAX_CELL}/${MODEL_NAME} \
+${MODEL_CONFIG_PATH} \
+${CHECKPOINT_PATH} \
+${REPLICA} \
+BATCH_SIZE=[1,2,4]
+```
+
 
 
 

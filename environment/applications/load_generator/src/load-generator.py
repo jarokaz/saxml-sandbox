@@ -5,9 +5,9 @@ import threading
 import multiprocessing as mp
 import time
 import argparse
+import jsonlines
 
 from transformers import LlamaTokenizer
-from datasets import load_dataset
 
 import huggingface_hub
 HUGGINGFACE_TOKEN="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"
@@ -36,8 +36,10 @@ def process_data(batch):
 
 
 def create_prompt_data(filename):
-  dataset = load_dataset('json', data_files=filename)
-  prompts =  [example['input'] for example in dataset['train']]
+  prompts = []
+  with jsonlines.open(filename) as reader:
+    for obj in reader:
+      prompts.append(obj['input'])
 
   return prompts
 
@@ -45,7 +47,7 @@ def create_prompt_data(filename):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('-m', '--model', type=str, default="/sax/test/llama7bfp16tpuv5e")
-  parser.add_argument('-d', '--data', type=str, default="gs://jk-saxml-archive/test_data/orca_prompts.jsonl")
+  parser.add_argument('-d', '--data', type=str, default="/gcs/jk-saxml-archive/test_data/orca_prompts.jsonl")
   parser.add_argument('-n', '--num_batches', type=int, default=32)
   parser.add_argument('-b', '--batch_size', type=int, default=1)
   parser.add_argument('-t', '--num_threads', type=int, default=1)
@@ -55,6 +57,9 @@ def main():
   prompts = create_prompt_data(args.data)
   num_prompts = args.num_batches * args.batch_size
   prompts = prompts[:num_prompts]
+
+  print(prompts)
+  return
  
   start = time.time()
   batched_data = []
