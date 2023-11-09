@@ -5,17 +5,17 @@ import threading
 import multiprocessing as mp
 import time
 import argparse
+import json
 import jsonlines
 
 from transformers import LlamaTokenizer
-
 import huggingface_hub
-HUGGINGFACE_TOKEN="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"
-huggingface_hub.login(token=HUGGINGFACE_TOKEN)
-tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf") 
-
-
 import sax
+
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
+ 
 
 
 def register_sax_model(model_id):
@@ -46,8 +46,10 @@ def create_prompt_data(filename):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('-m', '--model', type=str, default="/sax/test/llama7bfp16tpuv5e")
-  parser.add_argument('-d', '--data', type=str, default="/test_data/orca_prompts.jsonl")
+  parser.add_argument('-m', '--model', type=str)
+  parser.add_argument('-d', '--data', type=str)
+  parser.add_argument('-o', '--output', type=str) 
+  parser.add_argument('-t', '--test_id', type=str)
   parser.add_argument('-n', '--num_batches', type=int, default=32)
   parser.add_argument('-b', '--batch_size', type=int, default=1)
   parser.add_argument('-t', '--num_threads', type=int, default=1)
@@ -58,9 +60,6 @@ def main():
   num_prompts = args.num_batches * args.batch_size
   prompts = prompts[:num_prompts]
 
-  print(prompts)
-  return
- 
   start = time.time()
   batched_data = []
   for i in range(0, args.num_batches):
@@ -76,26 +75,35 @@ def main():
       total_output_tokens += result[1]
 
   total_time = time.time() - start
-  print('Test completed ...')
-  print(f"batch_size: {args.batch_size}")
-  print(f"threads: {args.num_threads}")
-  print(f"prompts: {len(prompts)}")
-  print(f"batches: {len(batched_data)}")
-  print(f"input tokens: {total_input_tokens}")
-  print(f"output tokens: {total_output_tokens}")
-  print(f"time: {total_time}")
-  print(f"time per batch: {total_time / len(batched_data)}")
-  print(f"time per input: {total_time / len(prompts)}")
-  print(f"time per output token: {total_time / total_output_tokens}")
-  print(f"output tokens per second: {total_output_tokens / total_time}")
-  print(f"input tokens per prompt: {total_input_tokens / len(prompts)}")
-  print(f"output tokens per prompt: {total_output_tokens / len(prompts)}")
-  # BatchSize	Batches	Threads	Time	QPS	OutTokenPerSec	Batch Latency (s)	Query Latency (s)	AvgInputLen	AvgOutputLen
   
-  print("BatchSize, Batches, Threads, Time, QPS, OutTokenPerSec, Batch Latency(s), Query Latency (s), AvgInputLen, AvgOutputLen")
-  print(f"{args.batch_size}, {len(batched_data)}, {args.num_threads}, {total_time}, {total_time / len(prompts)}, {total_output_tokens / total_time}, {total_time / len(batched_data)}, {total_time / len(prompts)}, {total_input_tokens / len(prompts)}, {total_output_tokens / len(prompts)}")
+  test_results = {}
+  test_results['batch_size'] = args.batch_size
+  test_results['threads'] = args.num_threads
+  test_results['prompts'] = len(prompts) 
+  test_results['batches'] = len(batched_data) 
+  test_results['input_tokens'] = total_input_tokens
+  test_results['output_tokens'] = total_output_tokens 
+  test_results['time'] = total_time 
+  test_results['time_per_batch'] = total_time / len(batched_data)
+  test_results['time_per_input'] = total_time / len(prompts 
+  test_results['time_per_output_token'] = total_time / total_output_tokens
+  test_results['output_tokens_per_second'] = total_output_tokens / total_time
+  test_results['input_tokens_per_prompt'] = total_input_tokens / len(prompts)
+  test_results['output_tokens_per_prompt'] = total_output_tokens / len(prompts)
+  test_results['prompts'] = len(prompts) 
+  test_results['prompts'] = len(prompts) 
+  test_results['prompts'] = len(prompts) 
+  print('Test completed ...')
+  pp.pprint(test_results)  
+
+  test_results_file_path = os.path.join(output, f'{test_id}.json')
+  with open(test_results_file_path, 'w') as f:
+    json.dump(test_results, f)
 
 
 if __name__ == '__main__':
+  HUGGINGFACE_TOKEN="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"
+  huggingface_hub.login(token=HUGGINGFACE_TOKEN)
+  tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf") 
   main()
 
