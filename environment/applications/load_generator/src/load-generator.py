@@ -2,11 +2,12 @@
 import os, sys
 import numpy as np
 import threading
-import multiprocessing as mp
 import time
 import argparse
 import json
 import jsonlines
+
+from multiprocessing.pool import ThreadPool
 
 from transformers import LlamaTokenizer
 import huggingface_hub
@@ -46,13 +47,13 @@ def create_prompt_data(filename):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('-m', '--model', type=str, default='/sax/test/llama7bfp16tpuv5e')
-  parser.add_argument('-d', '--data', type=str, default='/model_repository/benchmarking/test_data/orca_prompts.jsonl')
-  parser.add_argument('-o', '--output', type=str, default='/model_repository/benchmarking/test_runs') 
-  parser.add_argument('-t', '--test_id', type=str)
-  parser.add_argument('-n', '--num_batches', type=int, default=32)
-  parser.add_argument('-b', '--batch_size', type=int, default=1)
-  parser.add_argument('-t', '--num_threads', type=int, default=1)
+  parser.add_argument('--model', type=str, default='/sax/test/llama7bfp16tpuv5e')
+  parser.add_argument('--data', type=str, default='/model_repository/benchmarking/test_data/orca_prompts.jsonl')
+  parser.add_argument('--output', type=str, default='/model_repository/benchmarking/test_runs') 
+  parser.add_argument('--test_id', type=str, default='test1111')
+  parser.add_argument('--num_batches', type=int, default=32)
+  parser.add_argument('--batch_size', type=int, default=1)
+  parser.add_argument('--num_threads', type=int, default=1)
   args = parser.parse_args()
 
   register_sax_model(args.model)
@@ -69,7 +70,7 @@ def main():
   total_output_tokens = 0
 
   print('Starting the test ...')
-  with mp.pool.ThreadPool(processes=args.num_threads) as pool:
+  with ThreadPool(processes=args.num_threads) as pool:
     for result in pool.map(process_data, batched_data):
       total_input_tokens += result[0]
       total_output_tokens += result[1]
@@ -85,7 +86,7 @@ def main():
   test_results['output_tokens'] = total_output_tokens 
   test_results['time'] = total_time 
   test_results['time_per_batch'] = total_time / len(batched_data)
-  test_results['time_per_input'] = total_time / len(prompts 
+  test_results['time_per_input'] = total_time / len(prompts) 
   test_results['time_per_output_token'] = total_time / total_output_tokens
   test_results['output_tokens_per_second'] = total_output_tokens / total_time
   test_results['input_tokens_per_prompt'] = total_input_tokens / len(prompts)
@@ -95,8 +96,9 @@ def main():
   test_results['prompts'] = len(prompts) 
   print('Test completed ...')
   pp.pprint(test_results)  
-
-  test_results_file_path = os.path.join(output, f'{test_id}.json')
+  
+  os.makedirs(args.output, exist_ok=True)
+  test_results_file_path = os.path.join(args.output, f'{args.test_id}.json')
   with open(test_results_file_path, 'w') as f:
     json.dump(test_results, f)
 

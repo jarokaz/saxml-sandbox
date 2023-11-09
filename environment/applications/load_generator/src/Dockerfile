@@ -26,7 +26,7 @@ RUN pip3 install --upgrade numpy google-api-python-client
 WORKDIR saxml
 RUN bazel build saxml/client/python:sax.cc --compile_one_dependency
 
-RUN pip3 install --upgrade  pandas protobuf torch transformers datasets sentencepiece gcsfs 
+RUN pip3 install --upgrade  pandas protobuf torch transformers sentencepiece jsonlines 
 
 WORKDIR /app
 COPY . .
