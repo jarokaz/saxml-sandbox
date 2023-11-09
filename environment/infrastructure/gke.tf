@@ -43,6 +43,7 @@ module "gke" {
   create_service_account     = false 
   service_account            = google_service_account.gke_service_account.email
   grant_registry_access      = true  
+  gcs_fuse_csi_driver        = true
   identity_namespace         = "${data.google_project.project.project_id}.svc.id.goog" 
   logging_enabled_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   

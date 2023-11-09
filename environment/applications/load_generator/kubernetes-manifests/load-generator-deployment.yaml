@@ -7,6 +7,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: load-generator 
+
 spec:
   replicas: 1
   selector:
@@ -16,6 +17,8 @@ spec:
     metadata:
       labels:
         app: load-generator 
+      annotations:
+        gke-gcsfuse/volumes: "true"
     spec:
       hostNetwork: false
       serviceAccountName: sax-sa
@@ -26,6 +29,17 @@ spec:
         envFrom:
           - configMapRef:
               name: saxml-parameters
+        volumeMounts:
+          - name: gcs-fuse-ephemeral-model-repository
+            mountPath: /model_repository
+      volumes:
+      - name: gcs-fuse-ephemeral-model-repository
+        csi:
+          driver: gcsfuse.csi.storage.gke.io
+          volumeAttributes:
+            bucketName: bucket-name 
+            mountOptions: "implicit-dirs"
+          
 #        ports:
 #        - containerPort: 8080
 #        env:

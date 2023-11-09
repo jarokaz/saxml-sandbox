@@ -41,3 +41,12 @@ replacements:
     - spec.template.spec.serviceAccountName
     select:
       kind: Deployment
+- source:
+    fieldPath: data.MODEL_REPOSITORY_BUCKET
+    kind: ConfigMap
+    name: saxml-parameters
+  targets:
+  - fieldPaths:
+    - spec.template.spec.volumes.[name=gcs-fuse-ephemeral-model-repository].csi.volumeAttributes.bucketName
+    select:
+      kind: Deployment

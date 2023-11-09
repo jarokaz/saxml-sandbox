@@ -47,7 +47,7 @@ def create_prompt_data(filename):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('-m', '--model', type=str, default="/sax/test/llama7bfp16tpuv5e")
-  parser.add_argument('-d', '--data', type=str, default="/gcs/jk-saxml-archive/test_data/orca_prompts.jsonl")
+  parser.add_argument('-d', '--data', type=str, default="/test_data/orca_prompts.jsonl")
   parser.add_argument('-n', '--num_batches', type=int, default=32)
   parser.add_argument('-b', '--batch_size', type=int, default=1)
   parser.add_argument('-t', '--num_threads', type=int, default=1)
