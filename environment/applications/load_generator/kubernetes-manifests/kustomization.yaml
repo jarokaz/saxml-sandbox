@@ -18,24 +18,25 @@ kind: Kustomization
 namespace: saxml
 
 configMapGenerator:
-  - name: saxml-parameters 
-    envs:
-    - parameters.env
+- envs:
+  - parameters.env
+  name: load-generator-parameters
 
 images:
 - name: load-generator
-  newName: gcr.io/jk-mlops-dev/load-generator 
-  newTag: latest 
+  newName: gcr.io/jk-mlops-dev/load-generator
+  newTag: latest
 
+#- load-generator-deployment.yaml
 resources:
-- load-generator-deployment.yaml
+- load-generator-job.yaml
 
 
 replacements:
 - source:
     fieldPath: data.KSA
     kind: ConfigMap
-    name: saxml-parameters 
+    name: load-generator-parameters
   targets:
   - fieldPaths:
     - spec.template.spec.serviceAccountName
@@ -44,9 +45,14 @@ replacements:
 - source:
     fieldPath: data.MODEL_REPOSITORY_BUCKET
     kind: ConfigMap
-    name: saxml-parameters
+    name: load-generator-parameters
   targets:
   - fieldPaths:
     - spec.template.spec.volumes.[name=gcs-fuse-ephemeral-model-repository].csi.volumeAttributes.bucketName
     select:
       kind: Deployment
+  - fieldPaths:
+    - spec.template.spec.volumes.[name=gcs-fuse-ephemeral-model-repository].csi.volumeAttributes.bucketName
+    select:
+      kind: Job
+nameSuffix: "101"

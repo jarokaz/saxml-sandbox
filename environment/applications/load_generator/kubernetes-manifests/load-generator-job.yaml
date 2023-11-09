@@ -3,49 +3,59 @@
 # - Pod exposes port 8080
 # - specify PORT environment variable to the container process
 # Syntax reference https://kubernetes.io/docs/concepts/configuration/overview/
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: load-generator 
 
+apiVersion: batch/v1
+kind: Job 
+metadata:
+  name: load-generator
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: load-generator 
+  backoffLimit: 0
+  completions: 1
+  parallelism: 1
   template:
     metadata:
-      labels:
-        app: load-generator 
       annotations:
         gke-gcsfuse/volumes: "true"
     spec:
-      hostNetwork: false
-      serviceAccountName: sax-sa
+      restartPolicy: Never
+      serviceAccountName: saxml-sa
       containers:
-      - name: load-generator 
-        image: load-generator 
-        command: ["tail", "-f", "/dev/null"]
-        envFrom:
-          - configMapRef:
-              name: saxml-parameters
+      - name: convert-job
+        image: load-generator  
+        command: ["python3", "load-generator.py"]
+        args:
+        - --model_id=$(MODEL_ID) 
+        - --tokenizer=$(TOKENIZER)
+        - --tpu_type=$(TPU_TYPE)
+        - --tpu_topology=$(TPU_TOPOLOGY)
+        - --data=$(TEST_DATA)
+        - --output=$(OUTPUT_LOCATION)
+        - --test_id=$(TEST_ID_PREFIX)
+        - --num_batches=$(NUM_BATCHES)
+        - --batch_size=$(BATCH_SIZE)
+        - --num_threads=$(NUM_THREADS)
+        - --per_example_max_decode_steps=$(PER_EXAMPLE_DECODE_STEPS)
         volumeMounts:
-          - name: gcs-fuse-ephemeral-model-repository
-            mountPath: /model_repository
+        - name:  gcs-fuse-ephemeral-model-repository
+          mountPath: /model_repository
+        envFrom:
+        - configMapRef:
+            name: load-generator-parameters
+        env:
+        - name: HUGGINGFACE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hugging-face 
+              key: token
+        resources:
+          requests:
+            memory: 4G 
+          limits:
+            memory: 4G
       volumes:
-      - name: gcs-fuse-ephemeral-model-repository
-        csi:
-          driver: gcsfuse.csi.storage.gke.io
-          volumeAttributes:
-            bucketName: bucket-name 
-            mountOptions: "implicit-dirs"
-          
-#        ports:
-#        - containerPort: 8080
-#        env:
-#        - name: PORT
-#          value: "8080"
-#        readinessProbe:
-#          tcpSocket:
-#            port: 8080
-#          initialDelaySeconds: 5
+        - name: gcs-fuse-ephemeral-model-repository
+          csi:
+            driver: gcsfuse.csi.storage.gke.io
+            volumeAttributes:
+              bucketName: bucket-name 
+              mountOptions: "implicit-dirs"      

@@ -28,7 +28,7 @@ spec:
         command: ["tail", "-f", "/dev/null"]
         envFrom:
         - configMapRef:
-            name: saxml-parameters
+            name: load-generator-parameters
         env:
         - name: HUGGINGFACE_TOKEN
           valueFrom:
