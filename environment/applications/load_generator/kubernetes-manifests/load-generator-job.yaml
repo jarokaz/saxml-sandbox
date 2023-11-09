@@ -27,14 +27,8 @@ spec:
         image: load-generator 
         command: ["tail", "-f", "/dev/null"]
         envFrom:
-        - configMapRef:
-            name: saxml-parameters
-        env:
-        - name: HUGGINGFACE_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: hugging-face 
-              key: token
+          - configMapRef:
+              name: saxml-parameters
         volumeMounts:
           - name: gcs-fuse-ephemeral-model-repository
             mountPath: /model_repository
@@ -46,3 +40,12 @@ spec:
             bucketName: bucket-name 
             mountOptions: "implicit-dirs"
           
+#        ports:
+#        - containerPort: 8080
+#        env:
+#        - name: PORT
+#          value: "8080"
+#        readinessProbe:
+#          tcpSocket:
+#            port: 8080
+#          initialDelaySeconds: 5
