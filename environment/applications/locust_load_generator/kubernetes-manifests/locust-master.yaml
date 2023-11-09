@@ -12,3 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: locust-master
+  labels:
+    name: locust-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust-master
+  template:
+    metadata:
+      labels:
+        app: locust-master
+    spec:
+      containers:
+        - image: locust-load-generator 
+          name: locust-master
+          command: ["locust", "-f", "task.py"]
+#          command: ["tail", "-f", "/dev/null"]
+#          args: ["-f", "/tasks/task.py",  "--master"]
+          envFrom:
+            - configMapRef:
+                name: locust-load-generator-parameters  
+          ports:
+            - name: loc-master-web
+              containerPort: 8089
+              protocol: TCP
+            - name: loc-master-p1
+              containerPort: 5557
+              protocol: TCP
+            - name: loc-master-p2
+              containerPort: 5558
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 4Gi
+            requests:
+              cpu: "1"
+              memory: 4Gi
