@@ -17,22 +17,25 @@ locals {
   tpu_node_pool_names = [for index in range(var.num_tpu_pools) : "${var.tpu_node_pool_name_prefix}-${index}"]
 
   tpu_types = {
-    v5litepod-16  = ["4x4", 4, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4]
-    v5litepod-32  = ["4x8", 8, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4]
-    v5litepod-64  = ["8x8", 16, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4]
-    v5litepod-128 = ["8x16", 32, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4]
-    v5litepod-256 = ["16x16", 64, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4]
-    v4-8          = ["2x2x1", 1,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-16         = ["2x2x2", 2,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-32         = ["2x2x4", 4,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-64         = ["2x4x4", 8,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-128        = ["4x4x4", 16,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-256        = ["4x4x8", 32,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-512        = ["4x8x8", 64,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-1024       = ["8x8x8", 128,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-1536       = ["8x8x12", 192,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-2048       = ["8x8x16", 256,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
-    v4-4096       = ["8x16x16", 512,"tpu-v4-podslice", "ct4p-hightpu-4t", 4]
+    v5litepod-1   = ["1x1", 1, "tpu-v5-lite-podslice", "ct5lp-hightpu-1t", 1, true]
+    v5litepod-4   = ["2x2", 1, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4, true]
+    v5litepod-8   = ["2x4", 1, "tpu-v5-lite-podslice", "ct5lp-hightpu-8t", 8, true]
+    v5litepod-16  = ["4x4", 4, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4, false]
+    v5litepod-32  = ["4x8", 8, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4, false]
+    v5litepod-64  = ["8x8", 16, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4, false]
+    v5litepod-128 = ["8x16", 32, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4, false]
+    v5litepod-256 = ["16x16", 64, "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 4, false]
+    v4-8          = ["2x2x1", 1,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, true]
+    v4-16         = ["2x2x2", 2,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-32         = ["2x2x4", 4,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-64         = ["2x4x4", 8,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-128        = ["4x4x4", 16,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-256        = ["4x4x8", 32,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-512        = ["4x8x8", 64,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-1024       = ["8x8x8", 128,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-1536       = ["8x8x12", 192,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-2048       = ["8x8x16", 256,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
+    v4-4096       = ["8x16x16", 512,"tpu-v4-podslice", "ct4p-hightpu-4t", 4, false]
   }
 }
 
@@ -67,8 +70,11 @@ resource "google_container_node_pool" "tpu_node_pool" {
     }
   }
 
-  placement_policy {
-    type = "COMPACT"
-    tpu_topology = local.tpu_types[var.tpu_type][0]  
+  dynamic placement_policy {
+    for_each = local.tpu_types[var.tpu_type][5] ? []: [1]
+    content {
+      type = "COMPACT"
+      tpu_topology = local.tpu_types[var.tpu_type][0]
+    }  
   }
 }
