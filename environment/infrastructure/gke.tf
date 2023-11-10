@@ -46,6 +46,7 @@ module "gke" {
   gcs_fuse_csi_driver        = true
   identity_namespace         = "${data.google_project.project.project_id}.svc.id.goog" 
   logging_enabled_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+  deletion_protection        = var.cluster_deletion_protection
   
   cluster_resource_labels = { "mesh_id" : "proj-${data.google_project.project.number}" }
 

@@ -186,12 +186,12 @@ variable "gke_release_channel" {
 
 variable "gke_version" {
     description = "GKE version"
-    default      = "1.27.3-gke.100"
+    default      = "latest"
 }
 
 variable "asm_release_channel" {
     description = "GKE release channel"
-    default = "stable"
+    default = "regular"
 }
 
 variable "tpu_machine_type" {
@@ -216,6 +216,11 @@ variable "num_tpu_pools" {
 
 variable "enable_tpu_autoscaling" {
     description = "Enable TPU autoscaling"
+    default = false 
+}
+
+variable "cluster_deletion_protection" {
+    description = "Whether or not to allow Terraform to destroy the cluster."
     default = false 
 }
 
