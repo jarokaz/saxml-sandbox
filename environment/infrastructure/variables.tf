@@ -201,7 +201,7 @@ variable "tpu_machine_type" {
 
 variable "tpu_type" {
     description = "TPU type"
-    default = "v4-16"
+    default = "v4-8"
 }
 
 variable "tpu_node_pool_name_prefix" {
