@@ -62,6 +62,9 @@ resource "google_container_node_pool" "tpu_node_pool" {
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
     ]
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
   }
 
   placement_policy {

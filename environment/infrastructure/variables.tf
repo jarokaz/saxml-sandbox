@@ -181,7 +181,7 @@ variable "gke_sa_roles" {
 
 variable "gke_release_channel" {
     description = "GKE release channel"
-    default = "REGULAR"
+    default = "RAPID"
 }
 
 variable "gke_version" {

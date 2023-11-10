@@ -43,7 +43,7 @@ export SUBNET_NAME=jk-gke-subnet
 export CLUSTER_NAME=jk-saxml-cluster
 export NAMESPACE=saxml
 export TPU_TYPE=v4-8
-export NUM_TPU_POOLS=1
+export NUM_TPU_POOLS=0
 
 terraform apply \
 -var=project_id=$PROJECT_ID \
@@ -73,7 +73,7 @@ export SUBNET_NAME=jk-gke-subnet
 export CLUSTER_NAME=jk-saxml-cluster
 export NAMESPACE=saxml
 export TPU_TYPE=v4-8
-export NUM_TPU_POOLS=1
+export NUM_TPU_POOLS=0
 
 terraform destroy \
 -var=project_id=$PROJECT_ID \
