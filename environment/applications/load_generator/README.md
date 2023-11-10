@@ -3,7 +3,7 @@
 ## Create a secrete to store a Hugging Face token
 
 ```
-kubectl create secret generic hugging-face --from-literal=token='YOUR_TOKEN'
+kubectl create secret generic hugging-face --from-literal=token='YOUR_TOKEN' -n <YOUR NAMESPACE>
 ```
 
 ## Set test parameters

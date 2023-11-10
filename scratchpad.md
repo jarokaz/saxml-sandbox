@@ -212,6 +212,13 @@ docker run -it --rm \
 gcr.io/jk-mlops-dev/sax-admin
 ```
 
+```
+docker run -d --rm --network "host" \
+-e GSBUCKET=jk-saxml-admin-bucket \
+us-docker.pkg.dev/cloud-tpu-images/inference/sax-admin-server:v1.1.0
+
+```
+
 ### Starting a model server container on a TPU VM
 
 ```
@@ -226,6 +233,17 @@ gcr.io/jk-mlops-dev/sax-model \
 --platform_topology=2x2x1 
 
 ```
+
+```
+export GSBUCKET=jk-gke-aiml-repository
+
+docker run -it --rm  --privileged --network host \
+--env SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root \
+us-docker.pkg.dev/cloud-tpu-images/inference/sax-model-server:v1.1.0 \
+--sax_cell=/sax/test \
+--port=1001 \
+--platform_chip=tpuv4 \
+--platform_topology=2x2x1 
 
 
 ### Publish a modle
@@ -248,3 +266,11 @@ docker run gcr.io/jk-mlops-dev/sax-util --sax_root=gs://${GSBUCKET}/sax-root \
   "Q: Who is Harry Porter's mother? A: "
 
 ```
+
+
+gcloud compute tpus tpu-vm create jk-saxml-tpu-model-server \
+  --zone=us-central2-b \
+  --accelerator-type=v4-8 \
+  --version=tpu-vm-v4-base \
+  --scopes=https://www.googleapis.com/auth/cloud-platform \
+  --tags=saxml-model-server
