@@ -27,9 +27,9 @@ images:
   newName: gcr.io/jk-mlops-dev/load-generator
   newTag: latest
 
-#- load-generator-deployment.yaml
 resources:
-- load-generator-job.yaml
+#- load-generator-job.yaml
+- load-generator-deployment.yaml
 
 
 replacements:

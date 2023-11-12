@@ -137,7 +137,7 @@ parser.add_argument('--tokenizer', type=str,
 parser.add_argument('--tpu_type', type=str, default='tpu-v4-podslice')
 parser.add_argument('--tpu_topology', type=str, default='2x2x1')
 parser.add_argument('--data', type=str,
-                    default='/model_repository/benchmarking/test_data/orca_prompts.jsonl')
+                    default='orca_prompts.jsonl')
 parser.add_argument('--output', type=str,
                     default='/model_repository/benchmarking/test_runs')
 parser.add_argument('--test_id', type=str, default='test1111')

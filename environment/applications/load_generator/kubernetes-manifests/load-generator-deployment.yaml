@@ -20,7 +20,6 @@ spec:
       annotations:
         gke-gcsfuse/volumes: "true"
     spec:
-      hostNetwork: false
       serviceAccountName: sax-sa
       containers:
       - name: load-generator 

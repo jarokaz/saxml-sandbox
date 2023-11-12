@@ -204,46 +204,50 @@ gcloud builds submit \
 
 ### Starting an admin container
 
-```
-docker run -it --rm \
---env SAX_CELL=/sax/test \
---env GSBUCKET=jk-gke-aiml-repository \
---env PORT=10000 \
-gcr.io/jk-mlops-dev/sax-admin
-```
 
 ```
+
+export GSBUCKET=jk-saxml-admin-bucket
+export ADMIN_SERVER_IMAGE=us-docker.pkg.dev/cloud-tpu-images/inference/sax-admin-server:v1.1.0
+
 docker run -d --rm --network "host" \
--e GSBUCKET=jk-saxml-admin-bucket \
-us-docker.pkg.dev/cloud-tpu-images/inference/sax-admin-server:v1.1.0
+-e GSBUCKET=$GSBUCKET \
+$ADMIN_SERVER_IMAGE
 
 ```
 
 ### Starting a model server container on a TPU VM
 
 ```
-export GSBUCKET=jk-gke-aiml-repository
+export GSBUCKET=jk-saxml-admin-bucket
+export SAX_ROOT=gs://$GSBUCKET/sax-root
+export MODEL_SERVER_IMAGE=us-docker.pkg.dev/cloud-tpu-images/inference/sax-model-server:v1.1.0
+export SAX_CELL=/sax/test
+export MODEL_SERVER_PORT=10001
+export TPU_CHIP=tpuv4
+export TPU_TOPOLOGY="2x2x1"
 
-docker run -it --rm  --privileged \
---env SAX_ROOT=gs://${GSBUCKET}/sax-root \
-gcr.io/jk-mlops-dev/sax-model \
---sax_cell=/sax/test \
---port=1001 \
---platform_chip=tpuv4 \
---platform_topology=2x2x1 
+docker run -d  --rm  --privileged --network host \
+-e SAX_ROOT=$SAX_ROOT \
+$MODEL_SERVER_IMAGE \
+--sax_cell=$SAX_CELL \
+--port=$MODEL_SERVER_PORT \
+--platform_chip=$TPU_CHIP \
+--platform_topology=$TPU_TOPOLOGY \
+--jax_platforms=tpu
+
 
 ```
 
-```
-export GSBUCKET=jk-gke-aiml-repository
+### start utility
 
-docker run -it --rm  --privileged --network host \
---env SAX_ROOT=gs://jk-saxml-admin-bucket/sax-root \
-us-docker.pkg.dev/cloud-tpu-images/inference/sax-model-server:v1.1.0 \
---sax_cell=/sax/test \
---port=1001 \
---platform_chip=tpuv4 \
---platform_topology=2x2x1 
+```
+export UTILITY_IMAGE=us-docker.pkg.dev/cloud-tpu-images/inference/sax-util:v1.1.0 
+
+docker run -it --rm --entrypoint /bin/bash --network host \
+--env SAX_ROOT=$SAX_ROOT \
+$UTILITY_IMAGE
+```
 
 
 ### Publish a modle

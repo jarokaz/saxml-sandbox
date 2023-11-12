@@ -31,3 +31,25 @@ images:
 resources:
 - locust-master.yaml
 - locust-master-service.yaml
+- locust-worker.yaml
+
+replacements:
+- source:
+    fieldPath: data.KSA
+    kind: ConfigMap
+    name: locust-load-generator-parameters
+  targets:
+  - fieldPaths:
+    - spec.template.spec.serviceAccountName
+    select:
+      kind: Deployment
+- source:
+      fieldPath: data.NUM_LOCUST_WORKERS
+      kind: ConfigMap
+      name: locust-load-generator-parameters
+  targets:
+  - fieldPaths:
+    - spec.replicas
+    select:
+      kind: Deployment
+      name: locust-worker

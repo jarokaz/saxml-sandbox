@@ -27,16 +27,27 @@ spec:
     metadata:
       labels:
         app: locust-master
+#      annotations:
+#        gke-gcsfuse/volumes: "true"
     spec:
+#      hostNetwork: true
+      serviceAccountName: sax-sa
       containers:
         - image: locust-load-generator 
           name: locust-master
-          command: ["locust", "-f", "task.py"]
+          command: ["locust"]
+#          args: ["-f", "$(LOCUST_FILE)"]
+          args: ["-f", "$(LOCUST_FILE)",  "--master"]
 #          command: ["tail", "-f", "/dev/null"]
-#          args: ["-f", "/tasks/task.py",  "--master"]
           envFrom:
             - configMapRef:
                 name: locust-load-generator-parameters  
+          env:
+          - name: HUGGINGFACE_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: hugging-face 
+                key: token
           ports:
             - name: loc-master-web
               containerPort: 8089
@@ -50,7 +61,14 @@ spec:
           resources:
             limits:
               cpu: "1"
-              memory: 4Gi
+              memory: 1Gi
             requests:
               cpu: "1"
-              memory: 4Gi
+              memory: 1Gi
+#      volumes:
+#        - name: gcs-fuse-ephemeral-model-repository
+#          csi:
+#            driver: gcsfuse.csi.storage.gke.io
+#            volumeAttributes:
+#              bucketName: bucket-name 
+#              mountOptions: "implicit-dirs"
