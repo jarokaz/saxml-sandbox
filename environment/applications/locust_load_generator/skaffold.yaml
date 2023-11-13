@@ -11,6 +11,7 @@ build:
     sync:
       infer:
       - '**/*.py'
+      - '**/*.go'
 # defines the Kubernetes manifests to deploy on each run
 deploy:
    kustomize:

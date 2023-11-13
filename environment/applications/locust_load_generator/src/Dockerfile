@@ -27,23 +27,29 @@ RUN curl https://bazel.build/bazel-release.pub.gpg | apt-key --keyring /usr/shar
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-RUN apt -y update && apt install -y bazel-5.4.0 google-cloud-cli
+RUN apt -y update && apt install -y bazel-5.4.0 google-cloud-cli wget
 RUN update-alternatives --install /usr/bin/bazel bazel /usr/bin/bazel-5.4.0 20
+
+RUN pip3 install -U pip 
+RUN pip3 install --upgrade numpy google-api-python-client pandas protobuf torch transformers sentencepiece jsonlines locust  
 
 RUN git clone https://github.com/google/saxml.git && \
     cd saxml && \
     git checkout r1.1.0 
 
-RUN pip3 install -U pip 
-RUN pip3 install --upgrade numpy google-api-python-client 
+RUN wget https://go.dev/dl/go1.21.4.linux-amd64.tar.gz 
+RUN rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz
+ENV PATH "$PATH:/usr/local/go/bin"
 
 WORKDIR saxml
 RUN bazel build saxml/client/python:sax.cc --compile_one_dependency
+RUN bazel build saxml/client/go:sax
 
-RUN pip3 install --upgrade  pandas protobuf torch transformers sentencepiece jsonlines locust 
 
 WORKDIR /app
 COPY . .
+
+RUN cd go_load_generator && go build -o a.out main.go
 
 ENV PYTHONPATH "${PYTHONPATH}:/saxml/bazel-bin/saxml/client/python"
 #ENV PYTHONUNBUFFERED 1

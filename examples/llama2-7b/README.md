@@ -76,6 +76,14 @@ ${REPLICA} \
 BATCH_SIZE=[1,2,4]
 ```
 
+```
+saxutil  publish \
+${SAX_CELL}/${MODEL_NAME} \
+${MODEL_CONFIG_PATH} \
+${CHECKPOINT_PATH} \
+${REPLICA} \
+BATCH_SIZE=[2]
+```
 
 
 

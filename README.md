@@ -42,8 +42,8 @@ export NETWORK_NAME=jk-gke-network
 export SUBNET_NAME=jk-gke-subnet
 export CLUSTER_NAME=jk-saxml-cluster
 export NAMESPACE=saxml
-export TPU_TYPE=v4-16
-export NUM_TPU_POOLS=0
+export TPU_TYPE=v4-8
+export NUM_TPU_POOLS=1
 
 terraform apply \
 -var=project_id=$PROJECT_ID \

@@ -29,6 +29,15 @@ from locust.runners import STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP, STATE_R
 
 from transformers import LlamaTokenizer
 
+import locust.runners
+#locust.runners.HEARTBEAT_LIVENESS = 10
+#locust.runners.HEARBEAT_INTERVAL = 10 
+
+
+import grpc.experimental.gevent as grpc_gevent
+
+grpc_gevent.init_gevent()
+
 
 LOG_STATS_INTERVAL_SEC = 5
 LOG_NAME = 'locust'
@@ -67,7 +76,7 @@ class SaxmlUser(User):
         super().__init__(environment)
 
     
-    wait_time = between(0.01, 0.01)
+    wait_time = between(0.2, 0.3)
     #wait_time =1
 
     def on_start(self):

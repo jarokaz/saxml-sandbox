@@ -29,8 +29,8 @@ images:
   newTag: latest
 
 resources:
-- locust-master.yaml
-- locust-master-service.yaml
+#- locust-master.yaml
+#- locust-master-service.yaml
 - locust-worker.yaml
 
 replacements:
