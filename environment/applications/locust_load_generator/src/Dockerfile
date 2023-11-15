@@ -1,17 +1,3 @@
-# Copyright 2023 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 FROM python:3.10
 
 ENV SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL True
@@ -27,33 +13,36 @@ RUN curl https://bazel.build/bazel-release.pub.gpg | apt-key --keyring /usr/shar
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-RUN apt -y update && apt install -y bazel-5.4.0 google-cloud-cli wget
+RUN apt -y update && apt install -y bazel-5.4.0 google-cloud-cli
 RUN update-alternatives --install /usr/bin/bazel bazel /usr/bin/bazel-5.4.0 20
 
 RUN pip3 install -U pip 
-RUN pip3 install --upgrade numpy google-api-python-client pandas protobuf torch transformers sentencepiece jsonlines locust  
+RUN pip3 install --upgrade numpy google-api-python-client 
+RUN pip3 install --upgrade  pandas protobuf torch transformers sentencepiece jsonlines locust 
+
 
 RUN git clone https://github.com/google/saxml.git && \
     cd saxml && \
     git checkout r1.1.0 
+#RUN git clone https://github.com/jarokaz/saxml.git && \
+#    cd saxml
 
-RUN wget https://go.dev/dl/go1.21.4.linux-amd64.tar.gz 
-RUN rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz
-ENV PATH "$PATH:/usr/local/go/bin"
+WORKDIR /saxml
+#ADD custom_tools saxml/custom_tools
+#COPY custom_tools/WORKSPACE .
 
-WORKDIR saxml
+# RUN bazel build saxml/custom_tools:locust_worker
 RUN bazel build saxml/client/python:sax.cc --compile_one_dependency
-RUN bazel build saxml/client/go:sax
 
+#RUN  cp  \
+#     /saxml/bazel-bin/saxml/custom_tools/locust_worker_/locust_worker \
+#     /usr/bin/locust_worker
 
 WORKDIR /app
 COPY . .
 
-RUN cd go_load_generator && go build -o a.out main.go
-
 ENV PYTHONPATH "${PYTHONPATH}:/saxml/bazel-bin/saxml/client/python"
 #ENV PYTHONUNBUFFERED 1
-
 
 
 CMD ["/bin/bash"]

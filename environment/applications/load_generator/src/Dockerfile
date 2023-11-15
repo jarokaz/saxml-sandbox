@@ -16,24 +16,33 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.
 RUN apt -y update && apt install -y bazel-5.4.0 google-cloud-cli
 RUN update-alternatives --install /usr/bin/bazel bazel /usr/bin/bazel-5.4.0 20
 
+RUN pip3 install -U pip 
+RUN pip3 install --upgrade numpy google-api-python-client 
+RUN pip3 install --upgrade  pandas protobuf torch transformers sentencepiece jsonlines  
+
+
 RUN git clone https://github.com/google/saxml.git && \
     cd saxml && \
     git checkout r1.1.0 
+#RUN git clone https://github.com/jarokaz/saxml.git && \
+#    cd saxml
 
-RUN pip3 install -U pip 
-RUN pip3 install --upgrade numpy google-api-python-client 
+WORKDIR /saxml
+#ADD custom_tools saxml/custom_tools
+#COPY custom_tools/WORKSPACE .
 
-WORKDIR saxml
+# RUN bazel build saxml/custom_tools:locust_worker
 RUN bazel build saxml/client/python:sax.cc --compile_one_dependency
 
-RUN pip3 install --upgrade  pandas protobuf torch transformers sentencepiece jsonlines 
+#RUN  cp  \
+#     /saxml/bazel-bin/saxml/custom_tools/locust_worker_/locust_worker \
+#     /usr/bin/locust_worker
 
 WORKDIR /app
 COPY . .
 
 ENV PYTHONPATH "${PYTHONPATH}:/saxml/bazel-bin/saxml/client/python"
 #ENV PYTHONUNBUFFERED 1
-
 
 
 CMD ["/bin/bash"]

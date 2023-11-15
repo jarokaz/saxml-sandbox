@@ -21,7 +21,6 @@ import huggingface_hub
 import jsonlines
 import sax
 
-from functools import partial, update_wrapper
 from locust import User, task, between
 
 from locust.runners import MasterRunner, WorkerRunner, LocalRunner
@@ -31,12 +30,9 @@ from transformers import LlamaTokenizer
 
 import locust.runners
 #locust.runners.HEARTBEAT_LIVENESS = 10
-#locust.runners.HEARBEAT_INTERVAL = 10 
+locust.runners.HEARBEAT_INTERVAL = 10 
 
 
-import grpc.experimental.gevent as grpc_gevent
-
-grpc_gevent.init_gevent()
 
 
 LOG_STATS_INTERVAL_SEC = 5
