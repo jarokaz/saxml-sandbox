@@ -12,17 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sax
+
 from typing import Union
 
 from fastapi import FastAPI
 
-app = FastAPI()
 
+_model_id = os.getenv('MODEL_ID', '/sax/test/llama7bfp16tpuv5e')
+_model = sax.Model(_model_id)
+_lm = _model.LM()
+
+
+app = FastAPI()
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 
+@app.get("/generate")
+def lm_generate():
+    prompt = "Who are you?"
 
+    generate_response = _lm.Generate(prompt)
+
+    response = {
+        'generate_response': generate_response[0][0] 
+    } 
+    return response
 
