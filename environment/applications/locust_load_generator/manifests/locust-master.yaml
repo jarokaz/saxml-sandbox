@@ -37,7 +37,7 @@ spec:
           name: locust-master
           command: ["locust"]
 #          args: ["-f", "$(LOCUST_FILE)"]
-          args: ["-f", "$(LOCUST_FILE)",  "--master"]
+          args: ["-f", "$(LOCUST_FILE)",  "--master", "--host", "http://saxml-proxy:8080"]
 #          command: ["tail", "-f", "/dev/null"]
           envFrom:
             - configMapRef:

@@ -13,33 +13,21 @@
 # limitations under the License.
 
 import os
-import sax
+import json
+import random
+import time
 
-from typing import Union
+import jsonlines
 
-from fastapi import FastAPI
+from locust import User, task, between, HttpUser
 
-# Temporary hack for experimentation
-_model_id = os.getenv('MODEL_ID', '/sax/test/llama7bfp16tpuv5e')
-_model = sax.Model(_model_id)
-_lm = _model.LM()
+from locust.runners import MasterRunner, WorkerRunner, LocalRunner
+from locust.runners import STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP, STATE_RUNNING
 
+class SaxmlUser(HttpUser):
+    wait_time = between(1, 2)
+    @task
+    def smoke_test(self):
+        self.client.get("/generate")
 
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/generate")
-def lm_generate():
-    prompt = "Who are you?"
-
-    generate_response = _lm.Generate(prompt)
-
-    response = {
-        'generate_response': generate_response[0][0] 
-    } 
-    return response
 
