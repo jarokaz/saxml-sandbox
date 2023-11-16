@@ -224,4 +224,8 @@ variable "cluster_deletion_protection" {
     default = false 
 }
 
+variable "locust_pubsub_sink" {
+    description = "A name of the PubSub topic for Locust integration."
+    default = "locust_pubsub_sink"
+}
 
