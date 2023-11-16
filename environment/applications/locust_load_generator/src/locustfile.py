@@ -29,8 +29,8 @@ from locust.runners import STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP, STATE_R
 from transformers import LlamaTokenizer
 
 import locust.runners
-#locust.runners.HEARTBEAT_LIVENESS = 10
-locust.runners.HEARBEAT_INTERVAL = 10 
+locust.runners.HEARTBEAT_LIVENESS = 90 
+locust.runners.HEARBEAT_INTERVAL = 1 
 
 
 

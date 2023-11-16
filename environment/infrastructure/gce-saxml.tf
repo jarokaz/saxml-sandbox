@@ -40,7 +40,9 @@
 #        scopes = ["cloud-platform"]
 #    }
 #}
-#
+
+
+
 #resource google_tpu_v2_vm "saxml-model-server" {
 #    provider = google-beta
 #    name = "jk-saxml-model-server-test"

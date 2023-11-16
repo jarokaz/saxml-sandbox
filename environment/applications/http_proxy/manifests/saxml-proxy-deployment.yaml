@@ -15,33 +15,31 @@
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
-  name: locust-master
+  name: saxml-proxy 
   labels:
-    name: locust-master
+    name: saxml-proxy 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: locust-master
+      app: saxml-proxy 
   template:
     metadata:
       labels:
-        app: locust-master
+        app: saxml-proxy 
 #      annotations:
 #        gke-gcsfuse/volumes: "true"
     spec:
-#      hostNetwork: true
       serviceAccountName: sax-sa
       containers:
-        - image: locust-load-generator 
-          name: locust-master
-          command: ["locust"]
-#          args: ["-f", "$(LOCUST_FILE)"]
-          args: ["-f", "$(LOCUST_FILE)",  "--master"]
-#          command: ["tail", "-f", "/dev/null"]
+        - image: saxml-proxy 
+          name: saxml-proxy 
+          #command: ["tail", "-f", "/dev/null"]
+          command: ["uvicorn", ]
+          args: ["$(UVICORN_APP)", "--host", "0.0.0.0", "--port", "8080", "--reload"]
           envFrom:
             - configMapRef:
-                name: locust-load-generator-parameters  
+                name: saxml-proxy-parameters  
           env:
           - name: HUGGINGFACE_TOKEN
             valueFrom:
@@ -49,14 +47,8 @@ spec:
                 name: hugging-face 
                 key: token
           ports:
-            - name: loc-master-web
-              containerPort: 8089
-              protocol: TCP
-            - name: loc-master-p1
-              containerPort: 5557
-              protocol: TCP
-            - name: loc-master-p2
-              containerPort: 5558
+            - name: uvicorn-port 
+              containerPort: 8080
               protocol: TCP
           resources:
             limits:
