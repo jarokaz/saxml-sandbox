@@ -44,7 +44,7 @@ resource "google_bigquery_table" "locust_metrics" {
 [
     {
         "name": "data",
-        "type": "JSON",
+        "type": "STRING",
         "mode": "NULLABLE",
         "description": "JSON metrics blob"
 

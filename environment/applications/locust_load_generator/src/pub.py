@@ -32,7 +32,7 @@ def pub(project_id: str, topic_id: str) -> None:
     topic_path = client.topic_path(project_id, topic_id)
 
     ## Data sent to Cloud Pub/Sub must be a bytestring.
-    data = b"Hello, World!"
+    data = b"Hello, World! ***"
 
     ## When you publish a message, the client returns a future.
     #api_future = client.publish(topic_path, data)
