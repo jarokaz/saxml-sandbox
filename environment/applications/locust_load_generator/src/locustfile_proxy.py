@@ -53,15 +53,18 @@ class PubSubListener:
                          exception: Exception,
                          start_time: datetime):
 
-        print(response.json())        
-        print(context)
-
         data = {
+ #           "test_id": context["test_id"],
+            "test_id": None,
             "request_type": request_type,
-            "request_name": name,
-    #        "response_time": response_time,
+#            "request_name": name,
+            "response_time": response_time,
             "response_length": response_length,
-            "start_time": time.strftime("%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
+            "start_time": time.strftime("%Y-%m-%d %H:%M:%S",  time.localtime(start_time)),
+#            "num_output_tokens": context["num_output_tokens"],
+            "num_input_tokens": context["num_input_tokens"],
+            "model_name": context["model_name"],
+            "model_method": context["model_method"],
         }
         message = {
             "data": str(json.dumps(data)).encode("utf-8")
@@ -98,11 +101,6 @@ class PubSubListener:
 
         self.messages.append(message)
 
-        print('******************************')
-        print(message)
-        print(context)
-        return
-
         if len(self.messages) > self.batch_size:
             try:
                 logging.info(
@@ -122,6 +120,7 @@ class SaxmlUser(HttpUser):
     def smoke_test(self):
 
         with self.client.get("/generate", catch_response=True) as resp:
+            resp.request_meta["context"]["test_id"] = 'test101'
             resp.request_meta["context"]["num_output_tokens"] = 100
             resp.request_meta["context"]["model_name"] = "llama"
             resp.request_meta["context"]["model_method"] = "lm.Generate"

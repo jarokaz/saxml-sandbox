@@ -31,7 +31,7 @@ resource "google_pubsub_topic" "locust_sink" {
 resource "google_pubsub_schema" "locust_metrics_schema" {
     name = "locust_metrics_schema"
     type = "PROTOCOL_BUFFER"
-    definition = "syntax = \"proto3\";\nmessage Metrics {\nstring request_type = 1;\nstring request_name=2;\nint32 response_length=3;\nstring start_time=4;\nstring model_name=5;\nstring model_method=6;\nint32 num_output_tokens=7;\nint32 num_input_tokens=8;\n}"
+    definition = "syntax = \"proto3\";\nmessage Metrics {\nstring request_type = 1;\nstring request_name=2;\nint32 response_length=3;\nfloat response_time=4;\nstring start_time=5;\nstring model_name=6;\nstring model_method=7;\nint32 num_output_tokens=8;\nint32 num_input_tokens=9;\nstring test_id=10;\n}"
 }
 
 
@@ -55,6 +55,48 @@ resource "google_bigquery_table" "locust_metrics" {
     schema = <<EOF
 [
     {
+        "name": "subscription_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Subscription name"
+
+    }, 
+    {
+        "name": "message_id",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Test ID"
+
+    },
+    {
+        "name": "publish_time",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": "Test ID"
+
+    },
+    {
+        "name": "attributes",
+        "type": "JSON",
+        "mode": "NULLABLE",
+        "description": "Message attributes"
+
+    },
+    {
+        "name": "data",
+        "type": "JSON",
+        "mode": "NULLABLE",
+        "description": "Message data"
+
+    },
+    {
+        "name": "test_id",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Test ID"
+
+    },
+    {
         "name": "request_type",
         "type": "STRING",
         "mode": "NULLABLE",
@@ -74,7 +116,14 @@ resource "google_bigquery_table" "locust_metrics" {
         "mode": "NULLABLE",
         "description": "Response length"
 
-    },    
+    },   
+    {
+        "name": "response_time",
+        "type": "FLOAT64",
+        "mode": "NULLABLE",
+        "description": "Response time in miliseconds"
+
+    },     
     {
         "name": "start_time",
         "type": "DATETIME",
@@ -117,8 +166,10 @@ resource "google_pubsub_subscription" "locust_bq_subscription" {
     topic    = google_pubsub_topic.locust_sink.name
 
     bigquery_config {
-        table = "${google_bigquery_table.locust_metrics.project}.${google_bigquery_table.locust_metrics.dataset_id}.${google_bigquery_table.locust_metrics.table_id}"  
-        use_topic_schema = true 
+        table               = "${google_bigquery_table.locust_metrics.project}.${google_bigquery_table.locust_metrics.dataset_id}.${google_bigquery_table.locust_metrics.table_id}"  
+        use_topic_schema    = true
+        drop_unknown_fields = true 
+        write_metadata      = true
     }
 
     depends_on = [google_project_iam_member.viewer, google_project_iam_member.editor]
@@ -127,13 +178,13 @@ resource "google_pubsub_subscription" "locust_bq_subscription" {
 
 resource "google_project_iam_member" "viewer" {
   project = data.google_project.project.project_id
-  role   = "roles/bigquery.metadataViewer"
-  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  role    = "roles/bigquery.metadataViewer"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
 
 resource "google_project_iam_member" "editor" {
   project = data.google_project.project.project_id
-  role   = "roles/bigquery.dataEditor"
-  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  role    = "roles/bigquery.dataEditor"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }

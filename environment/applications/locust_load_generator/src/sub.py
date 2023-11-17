@@ -30,6 +30,7 @@ def sub(project_id: str, subscription_id: str, timeout: Optional[float] = None) 
 
     def callback(message: pubsub_v1.subscriber.message.Message) -> None:
         print(f"Received {message}.")
+        print(message.data)
         # Acknowledge the message. Unack'ed messages will be redelivered.
         message.ack()
         print(f"Acknowledged {message.message_id}.")
@@ -65,5 +66,5 @@ if __name__ == "__main__":
 
     #sub(args.project_id, args.subscription_id, args.timeout)
     project_id = "jk-mlops-dev"
-    subscription_id = "sub_one"
+    subscription_id = "test_sub"
     sub(project_id, subscription_id)
