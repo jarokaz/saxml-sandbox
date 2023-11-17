@@ -43,7 +43,7 @@ resource "google_bigquery_table" "locust_metrics" {
     schema = <<EOF
 [
     {
-        "name": "json_metrics",
+        "name": "data",
         "type": "JSON",
         "mode": "NULLABLE",
         "description": "JSON metrics blob"
@@ -59,10 +59,10 @@ resource "google_pubsub_subscription" "locust_bq_subscription" {
     topic    = google_pubsub_topic.locust_sink.name
 
     bigquery_config {
-        table = "${google_bigquery_table.locust_metrics.project}.${google_bigquery_table.locust_metrics.dataset_id}.{google_bigquery_table.locust_metrics.table_id}"   
+        table = "${google_bigquery_table.locust_metrics.project}.${google_bigquery_table.locust_metrics.dataset_id}.${google_bigquery_table.locust_metrics.table_id}"   
     }
 
-    depends_on = [google_project_iam_member.viewer, google_project_iam_member.editor]
+    #depends_on = [google_project_iam_member.viewer, google_project_iam_member.editor]
 }
 
 
