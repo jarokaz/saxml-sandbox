@@ -32,6 +32,8 @@ terraform init -backend-config="bucket=$TF_STATE_BUCKET" -backend-config="prefix
 
 #### Apply configuration
 
+REMINDER !!!!. Modify permissions for the saxml_sa to limit PubSub access - currently it is pubsub.admin
+
 ```
 export PROJECT_ID=jk-mlops-dev
 export REGION=us-central2

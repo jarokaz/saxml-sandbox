@@ -1,3 +1,16 @@
+# Locust load generator
+
+## Assign BigQuery Data Editor role to PubSub services account
+
+```
+https://cloud.google.com/pubsub/docs/create-bigquery-subscription#assign_bigquery_service_account
+```
+## Create a biquery table
+
+```
+
+```
+
 
 
 ```

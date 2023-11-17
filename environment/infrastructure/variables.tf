@@ -126,6 +126,7 @@ variable "saxml_sa_roles" {
     "roles/storage.objectAdmin",
     "roles/storage.admin",
     "roles/logging.logWriter",
+    "roles/pubsub.admin"
     ] 
 }
 
@@ -225,7 +226,26 @@ variable "cluster_deletion_protection" {
 }
 
 variable "locust_pubsub_sink" {
-    description = "A name of the PubSub topic for Locust integration."
+    description = "The name of the PubSub topic for Locust integration."
     default = "locust_pubsub_sink"
 }
 
+variable "locust_pubsub_bq_subscription" {
+    description = "The name of the PubSub BQ subscription for Locust integration."
+    default = "locust_pubsub_bq_sub"
+}
+
+variable "locust_bq_dataset_id" {
+    description = "The name of the BigQuery dataset to manage Locust metrics"
+    default = "locust_metrics_dataset"
+}
+
+variable "locust_bq_dataset_location" {
+    description = "The location of the BigQuery dataset to manage Locust metrics"
+    default = "US"
+}
+
+variable "locust_bq_table" {
+    description = "The name of the BQ table to manage Locust metrics"
+    default = "locust_metrics"
+}

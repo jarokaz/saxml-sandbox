@@ -35,7 +35,7 @@ spec:
 #          command: ["tail", "-f", "/dev/null"]
 #          command: ["/app/go_load_generator/a.out", "--master-host", "locust-master"]
           command: ["locust"]
-          args: ["-f", "$(LOCUST_FILE)",  "--worker", "--master-host", "locust-master", "--host", "http://saxml-proxy:8080"]
+          args: ["-f", "$(LOCUST_FILE)",  "--worker", "--master-host", "locust-master"]
           env:
             - name: LOCUST_MASTER
               value: locust-master
