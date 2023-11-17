@@ -36,10 +36,11 @@ def read_root():
 def lm_generate():
     prompt = "Who are you?"
 
-    generate_response = _lm.Generate(prompt)
+    #generate_response = _lm.Generate(prompt)
 
-    response = {
-        'generate_response': generate_response[0][0] 
-    } 
+    #response = {
+    #    'generate_response': generate_response[0][0] 
+    #} 
+    response = "I am the greatest"
     return response
 

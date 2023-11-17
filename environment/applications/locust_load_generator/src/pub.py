@@ -15,12 +15,15 @@
 # limitations under the License.
 
 import argparse
+import json
 
 from google.cloud import pubsub_v1
 
 from google.pubsub_v1 import types as gapic_types
 #from google.pubsub_v1.services.publisher import client as publisher_client
 from google.pubsub_v1.services.publisher.client import PublisherClient
+from google.pubsub_v1.types import Encoding
+from google.protobuf.json_format import MessageToJson
 
 
 def pub(project_id: str, topic_id: str) -> None:
@@ -30,17 +33,32 @@ def pub(project_id: str, topic_id: str) -> None:
     ## Create a fully qualified identifier of form `projects/{project_id}/topics/{topic_id}`
     client = PublisherClient()
     topic_path = client.topic_path(project_id, topic_id)
+    topic = client.get_topic(topic=topic_path)
+    encoding = topic.schema_settings.encoding
+    # Assume that encoding is JSON
+    if encoding != Encoding.JSON:
+        raise ValueError("Unsupported topic encoding")
 
-    ## Data sent to Cloud Pub/Sub must be a bytestring.
-    data = b"Hello, World! ***"
-
-    ## When you publish a message, the client returns a future.
-    #api_future = client.publish(topic_path, data)
-    #message_id = api_future.result()
+    data = {
+        "request_type" :  "lll",
+        "request_name": "aaa",
+        "response_length": 2,
+        "start_time": "2018-11-11"
+    }
+    #data_json = json.dumps(data)
+    data_json = str(json.dumps(data)).encode("utf-8")
+    print(data_json)
 
     message = {
-        'data': data 
+        'data': data_json 
     }
+
+   # message = {
+   #        'request_type': "saxml",
+   #        'request_name': 'lm.generat',
+   #        'response_length': 100,
+   #        'start_time':  '2008-12-24',
+   # }
 
     response = client.publish(topic=topic_path, messages=[message])
 

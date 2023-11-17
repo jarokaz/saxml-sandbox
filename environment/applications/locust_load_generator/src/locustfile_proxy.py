@@ -24,11 +24,12 @@ import grpc.experimental.gevent as grpc_gevent
 import jsonlines
 
 from google.cloud import pubsub_v1
-from locust import  task, between, HttpUser, env, events
+from locust import task, between, HttpUser, env, events
 from google.pubsub_v1.services.publisher.client import PublisherClient
 
 # patch grpc so that it uses gevent instead of asyncio
 grpc_gevent.init_gevent()
+
 
 class PubSubListener:
     def __init__(self, environment: env.Environment, topic_path: str, batch_size=2, maximum_batch_size=500):
@@ -41,55 +42,90 @@ class PubSubListener:
         self.maximum_batch_size = maximum_batch_size
         self.environment.events.request.add_listener(self.log_request)
         self.counter = 0
-        
-    def log_request(self, 
-                    request_type: str, 
+
+    def _prepare_message(self,
+                         request_type: str,
+                         name: str,
+                         response_time: int,
+                         response_length: int,
+                         response: object,
+                         context: dict,
+                         exception: Exception,
+                         start_time: datetime):
+
+        print(response.json())        
+        print(context)
+
+        data = {
+            "request_type": request_type,
+            "request_name": name,
+    #        "response_time": response_time,
+            "response_length": response_length,
+            "start_time": time.strftime("%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
+        }
+        message = {
+            "data": str(json.dumps(data)).encode("utf-8")
+        }
+
+        return message
+
+
+    def log_request(self,
+                    request_type: str,
                     name: str,
-                    response_time: int, 
-                    response_length: int, 
-                    response: object, 
-                    context: dict, 
-                    exception: Exception, 
-                    start_time: datetime, 
+                    response_time: int,
+                    response_length: int,
+                    response: object,
+                    context: dict,
+                    exception: Exception,
+                    start_time: datetime,
                     **kwargs):
 
-        self.counter += 1
-        data = {
-            'request_type': 'lm.generate',
-            'response_lengt': 100
-        }
-
-        message_data = bytes(json.dumps(data).encode(encoding='utf-8'))
-        message = {
-            'data': message_data,
-            'attributes': {
-                'message_number': str(self.counter)
-            }
-        }
-        
         if len(self.messages) > self.maximum_batch_size:
-            logging.warning(f"Maximum number of request records reached - {len(self.messages)}. Removing the oldest record")
+            logging.warning(
+                f"Maximum number of request records reached - {len(self.messages)}. Removing the oldest record")
             self.messages.pop()
+
+        message = self._prepare_message(
+            request_type=request_type,
+            name=name,
+            response_time=response_time,
+            response_length=response_length,
+            response=response,
+            context=context,
+            exception=exception,
+            start_time=start_time)
 
         self.messages.append(message)
 
+        print('******************************')
+        print(message)
+        print(context)
+        return
+
         if len(self.messages) > self.batch_size:
             try:
-                logging.info(f"Publishing {len(self.messages)} request records to {self.topic_path}")
-                self.client.publish(topic=self.topic_path, messages=self.messages) 
+                logging.info(
+                    f"Publishing {len(self.messages)} request records to {self.topic_path}")
+                self.client.publish(topic=self.topic_path,
+                                    messages=self.messages)
                 self.messages = []
             except Exception as e:
-                logging.error(f"Exception when publishing request records - {e}")
-
-
+                logging.error(
+                    f"Exception when publishing request records - {e}")
 
 
 class SaxmlUser(HttpUser):
-    wait_time = between(2, 2)
+    wait_time = between(5, 5)
+
     @task
     def smoke_test(self):
-        self.client.get("/generate")
 
+        with self.client.get("/generate", catch_response=True) as resp:
+            resp.request_meta["context"]["num_output_tokens"] = 100
+            resp.request_meta["context"]["model_name"] = "llama"
+            resp.request_meta["context"]["model_method"] = "lm.Generate"
+            resp.request_meta["context"]["num_input_tokens"] = 200
 
 
 @events.init.add_listener
