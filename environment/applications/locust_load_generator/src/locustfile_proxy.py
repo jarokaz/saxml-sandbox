@@ -125,9 +125,9 @@ class SaxmlUser(HttpUser):
     def smoke_test(self):
 
         with self.client.get("/generate", catch_response=True) as resp:
-            resp.request_meta["context"]["test_id"] = 'test101'
+            resp.request_meta["context"]["test_id"] = test_id
             resp.request_meta["context"]["num_output_tokens"] = 100
-            resp.request_meta["context"]["model_name"] = "llama"
+            resp.request_meta["context"]["model_name"] = model_id
             resp.request_meta["context"]["model_method"] = "lm.Generate"
             resp.request_meta["context"]["num_input_tokens"] = 200
 
@@ -136,3 +136,26 @@ class SaxmlUser(HttpUser):
 def on_locust_init(environment, **kwargs):
     PubSubListener(environment=environment,
                    topic_path='projects/jk-mlops-dev/topics/locust_pubsub_sink')
+
+@events.test_start.add_listener
+def _(environment, **kwargs):
+    global test_id
+    global model_id
+
+    test_id = environment.parsed_options.test_id
+    model_id = environment.parsed_options.model_id 
+    print("Starting test")
+    print(environment.parsed_options.test_id)
+    print(environment.parsed_options.model_id)
+
+
+
+@events.test_stop.add_listener
+def _(environment, **kwargs):
+    print("Stopping test")
+
+
+@events.init_command_line_parser.add_listener
+def _(parser):
+    parser.add_argument("--test_id", type=str, env_var="TEST_ID", include_in_web_ui=True, default="", help="Test ID")
+    parser.add_argument("--model_id", type=str, env_var="MODEL_ID", include_in_web_ui=True, default="", help="Model ID")
