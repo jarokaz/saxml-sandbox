@@ -33,7 +33,7 @@ grpc_gevent.init_gevent()
 
 
 class PubsubAdapter:
-    def __init__(self, environment: Environment, topic_path: str, batch_size=5, maximum_batch_size=500):
+    def __init__(self, environment: Environment, topic_path: str, batch_size=10, maximum_batch_size=500):
         self.environment = environment
         self.topic_path = topic_path
         self.client = PublisherClient()

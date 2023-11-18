@@ -25,7 +25,9 @@ def on_locust_init(environment, **kwargs):
         topic_path = f"projects/{environment.parsed_options.project_id}/topics/{environment.parsed_options.topic_name}"
         logging.info(
             f'Registering PubsubAdapter for topic: {topic_path}.')
-        PubsubAdapter(environment=environment, topic_path=topic_path)
+        PubsubAdapter(environment=environment,
+                      topic_path=topic_path,
+                      batch_size=environment.parsed_options.message_buffer_size)
     else:
         logging.info(
             'No Pubsub topic configured. User requests will NOT be tracked. To enable tracking you must set --topic_name and --project_id parameters.')
@@ -56,3 +58,5 @@ def _(parser):
                         include_in_web_ui=False, default="",  help="Project ID")
     parser.add_argument("--test_data", type=str, env_var="TEST_DATA",
                         include_in_web_ui=True, default="", help="GCS URI to test data")
+    parser.add_argument("--message_buffer_size", type=int, env_var="MESSAGE_BUFFER_SIZE",
+                        include_in_web_ui=True, default=5, help="The size of the batch for Pubsub transactions")
