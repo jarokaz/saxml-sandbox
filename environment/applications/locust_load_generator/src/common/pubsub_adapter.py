@@ -15,39 +15,37 @@
 import os
 import json
 import logging
-import random
 import time
 from datetime import datetime
 
 import grpc.experimental.gevent as grpc_gevent
 
-import jsonlines
-
 from google.cloud import pubsub_v1
-from locust import task, between, HttpUser, env, events
+from locust.env import Environment
 from google.protobuf.json_format import MessageToDict
 from google.pubsub_v1.services.publisher.client import PublisherClient
 from google.pubsub_v1.types import PubsubMessage
 
-import metrics_pb2
+from common import metrics_pb2
 
 # patch grpc so that it uses gevent instead of asyncio
 grpc_gevent.init_gevent()
 
 
-class PubSubListener:
-    def __init__(self, environment: env.Environment, topic_path: str, batch_size=2, maximum_batch_size=500):
+class PubsubAdapter:
+    def __init__(self, environment: Environment, topic_path: str, batch_size=5, maximum_batch_size=500):
         self.environment = environment
         self.topic_path = topic_path
-        self.logger = logging.getLogger(__name__)
         self.client = PublisherClient()
         self.messages = []
         self.batch_size = batch_size
         self.maximum_batch_size = maximum_batch_size
         self.environment.events.request.add_listener(self.log_request)
-        self.counter = 0
+        self.environment.events.test_stop.add_listener(self.on_test_stop)
+        self.environment.events.test_start.add_listener(self.on_test_start)
 
     def _prepare_message(self,
+                         test_id: str,
                          request_type: str,
                          name: str,
                          response_time: int,
@@ -58,7 +56,7 @@ class PubSubListener:
                          start_time: datetime):
 
         metrics = metrics_pb2.Metrics()
-        metrics.test_id = context["test_id"]
+        metrics.test_id = test_id
         metrics.request_type = request_type
         metrics.request_name = name
         metrics.response_time = response_time
@@ -78,6 +76,20 @@ class PubSubListener:
 
         return message
 
+    def flush_messages(self, force: bool=False):
+
+        if self.messages:
+            if force or (len(self.messages) >= self.batch_size):
+                try:
+                    logging.info(
+                        f"Publishing {len(self.messages)} request records to {self.topic_path}")
+                    self.client.publish(topic=self.topic_path,
+                                        messages=self.messages)
+                    self.messages = []
+                except Exception as e:
+                    logging.error(
+                        f"Exception when publishing request records - {e}")
+
     def log_request(self,
                     request_type: str,
                     name: str,
@@ -89,12 +101,18 @@ class PubSubListener:
                     start_time: datetime,
                     **kwargs):
 
+        if not self.test_id:
+            logging.warning(
+                "Test ID NOT configured. The message will not be tracked.")
+            return
+
         if len(self.messages) > self.maximum_batch_size:
             logging.warning(
                 f"Maximum number of request records reached - {len(self.messages)}. Removing the oldest record")
             self.messages.pop()
 
         message = self._prepare_message(
+            test_id=self.test_id,
             request_type=request_type,
             name=name,
             response_time=response_time,
@@ -105,57 +123,23 @@ class PubSubListener:
             start_time=start_time)
 
         self.messages.append(message)
+        self.flush_messages()
 
-        if len(self.messages) > self.batch_size:
-            try:
-                logging.info(
-                    f"Publishing {len(self.messages)} request records to {self.topic_path}")
-                self.client.publish(topic=self.topic_path,
-                                    messages=self.messages)
-                self.messages = []
-            except Exception as e:
-                logging.error(
-                    f"Exception when publishing request records - {e}")
+    def on_test_stop(self, environment: Environment, **kwargs):
 
+        logging.info(
+            f"Flushing the remaining messages as test {self.test_id} is stopping")
+        self.flush_messages(force=True)
 
-class SaxmlUser(HttpUser):
-    wait_time = between(5, 5)
-
-    @task
-    def smoke_test(self):
-
-        with self.client.get("/generate", catch_response=True) as resp:
-            resp.request_meta["context"]["test_id"] = test_id
-            resp.request_meta["context"]["num_output_tokens"] = 100
-            resp.request_meta["context"]["model_name"] = model_id
-            resp.request_meta["context"]["model_method"] = "lm.Generate"
-            resp.request_meta["context"]["num_input_tokens"] = 200
-
-
-@events.init.add_listener
-def on_locust_init(environment, **kwargs):
-    PubSubListener(environment=environment,
-                   topic_path='projects/jk-mlops-dev/topics/locust_pubsub_sink')
-
-@events.test_start.add_listener
-def _(environment, **kwargs):
-    global test_id
-    global model_id
-
-    test_id = environment.parsed_options.test_id
-    model_id = environment.parsed_options.model_id 
-    print("Starting test")
-    print(environment.parsed_options.test_id)
-    print(environment.parsed_options.model_id)
-
-
-
-@events.test_stop.add_listener
-def _(environment, **kwargs):
-    print("Stopping test")
-
-
-@events.init_command_line_parser.add_listener
-def _(parser):
-    parser.add_argument("--test_id", type=str, env_var="TEST_ID", include_in_web_ui=True, default="", help="Test ID")
-    parser.add_argument("--model_id", type=str, env_var="MODEL_ID", include_in_web_ui=True, default="", help="Model ID")
+    def on_test_start(self, environment: Environment, **kwargs):
+         
+        if environment.parsed_options.test_id:
+            self.test_id = environment.parsed_options.test_id
+            logging.info(
+                f"Pubsub adapter configured for test {self.test_id}")
+        else:
+            self.test_id = None
+            logging.warning(
+                f"Test ID not configured. Pubsub adapter tracking disabled."
+            )
+        self.messages = []
