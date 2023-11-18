@@ -249,3 +249,13 @@ variable "locust_bq_table" {
     description = "The name of the BQ table to manage Locust metrics"
     default = "locust_metrics"
 }
+
+variable "message_schema" {
+    description = "PubSub message schema for locust"
+    default = ""
+}
+
+variable "table_schema" {
+    description = "BigQuery table schema for locust"
+    default = ""
+}

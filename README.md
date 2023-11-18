@@ -58,7 +58,7 @@ terraform apply \
 -var=repository_bucket_name=$MODEL_REPOSITORY_BUCKET_NAME \
 -var=saxml_admin_bucket_name=$SAXML_ADMIN_BUCKET_NAME \
 -var=tpu_type=$TPU_TYPE \
--var=num_tpu_pools=$NUM_TPU_POOLS
+-var=num_tpu_pools=$NUM_TPU_POOLS 
 
 ```
 
@@ -77,6 +77,7 @@ export NAMESPACE=saxml
 export TPU_TYPE=v4-8
 export NUM_TPU_POOLS=0
 
+
 terraform destroy \
 -var=project_id=$PROJECT_ID \
 -var=cluster_name=$CLUSTER_NAME \
@@ -88,7 +89,8 @@ terraform destroy \
 -var=repository_bucket_name=$MODEL_REPOSITORY_BUCKET_NAME \
 -var=saxml_admin_bucket_name=$SAXML_ADMIN_BUCKET_NAME \
 -var=tpu_type=$TPU_TYPE \
--var=num_tpu_pools=$NUM_TPU_POOLS
+-var=num_tpu_pools=$NUM_TPU_POOLS 
+
 
 ```
 

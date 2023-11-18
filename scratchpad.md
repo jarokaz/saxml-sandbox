@@ -278,3 +278,11 @@ gcloud compute tpus tpu-vm create jk-saxml-tpu-model-server \
   --version=tpu-vm-v4-base \
   --scopes=https://www.googleapis.com/auth/cloud-platform \
   --tags=saxml-model-server
+
+
+## Get message schemal literal
+
+```
+sed -z -e 's/"/\\"/g' -e 's/\n/\\n/g' ../applications/locust_load_generator/src/message.proto
+
+```

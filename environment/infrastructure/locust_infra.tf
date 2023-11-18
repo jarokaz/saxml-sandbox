@@ -12,47 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "google_pubsub_topic" "locust_sink" {
-    name = var.locust_pubsub_sink
-    depends_on = [google_pubsub_schema.locust_metrics_schema]
 
-    schema_settings {
-        schema="projects/${data.google_project.project.project_id}/schemas/locust_metrics_schema"
-        encoding = "JSON"
-    }
-
-    labels = {
-        test_environment = "saxml"
-    }
-
-    message_retention_duration = "86600s"
-}
-
-resource "google_pubsub_schema" "locust_metrics_schema" {
-    name = "locust_metrics_schema"
-    type = "PROTOCOL_BUFFER"
-    definition = "syntax = \"proto3\";\nmessage Metrics {\nstring request_type = 1;\nstring request_name=2;\nint32 response_length=3;\nfloat response_time=4;\nstring start_time=5;\nstring model_name=6;\nstring model_method=7;\nint32 num_output_tokens=8;\nint32 num_input_tokens=9;\nstring test_id=10;\n}"
-}
-
-
-resource "google_bigquery_dataset" "locust_dataset" {
-    dataset_id           = var.locust_bq_dataset_id
-    friendly_name        = "Locust metrics"
-    description          = "Locust metrics"
-    location             = var.locust_bq_dataset_location
-
-    access {
-        role           = "OWNER"
-        user_by_email  = module.workload_identity.gcp_service_account_email 
-    }
-
-}
-
-resource "google_bigquery_table" "locust_metrics" {
-    dataset_id          = google_bigquery_dataset.locust_dataset.dataset_id
-    table_id            = var.locust_bq_table
-    deletion_protection = false
-    schema = <<EOF
+locals {
+    default_message_schema = "syntax = \"proto3\";\n\nmessage Metrics {\n    string test_id=1;\n    string request_type = 2;\n    string request_name=3;\n    int32 response_length=4;\n    float response_time=5;\n    string start_time=6;\n    optional string model_name=7;\n    optional string model_method=8;\n    optional int32 num_output_tokens=9;\n    optional int32 num_input_tokens=10;\n}"
+    default_table_schema = <<EOF
 [
     {
         "name": "subscription_name",
@@ -158,6 +121,49 @@ resource "google_bigquery_table" "locust_metrics" {
     }
 ]
 EOF
+}
+
+resource "google_pubsub_topic" "locust_sink" {
+    name = var.locust_pubsub_sink
+    depends_on = [google_pubsub_schema.locust_metrics_schema]
+
+    schema_settings {
+        schema="projects/${data.google_project.project.project_id}/schemas/locust_metrics_schema"
+        encoding = "JSON"
+    }
+
+    labels = {
+        test_environment = "saxml"
+    }
+
+    message_retention_duration = "86600s"
+}
+
+resource "google_pubsub_schema" "locust_metrics_schema" {
+    name       = "locust_metrics_schema"
+    type       = "PROTOCOL_BUFFER"
+    definition = local.default_message_schema
+}
+
+
+resource "google_bigquery_dataset" "locust_dataset" {
+    dataset_id           = var.locust_bq_dataset_id
+    friendly_name        = "Locust metrics"
+    description          = "Locust metrics"
+    location             = var.locust_bq_dataset_location
+
+    access {
+        role           = "OWNER"
+        user_by_email  = module.workload_identity.gcp_service_account_email 
+    }
+
+}
+
+resource "google_bigquery_table" "locust_metrics" {
+    dataset_id          = google_bigquery_dataset.locust_dataset.dataset_id
+    table_id            = var.locust_bq_table
+    deletion_protection = false
+    schema              = local.default_table_schema 
 }
 
 

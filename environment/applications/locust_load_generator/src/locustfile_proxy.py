@@ -25,7 +25,11 @@ import jsonlines
 
 from google.cloud import pubsub_v1
 from locust import task, between, HttpUser, env, events
+from google.protobuf.json_format import MessageToDict
 from google.pubsub_v1.services.publisher.client import PublisherClient
+from google.pubsub_v1.types import PubsubMessage
+
+import metrics_pb2
 
 # patch grpc so that it uses gevent instead of asyncio
 grpc_gevent.init_gevent()
@@ -53,25 +57,26 @@ class PubSubListener:
                          exception: Exception,
                          start_time: datetime):
 
-        data = {
- #           "test_id": context["test_id"],
-            "test_id": None,
-            "request_type": request_type,
-#            "request_name": name,
-            "response_time": response_time,
-            "response_length": response_length,
-            "start_time": time.strftime("%Y-%m-%d %H:%M:%S",  time.localtime(start_time)),
-#            "num_output_tokens": context["num_output_tokens"],
-            "num_input_tokens": context["num_input_tokens"],
-            "model_name": context["model_name"],
-            "model_method": context["model_method"],
-        }
-        message = {
-            "data": str(json.dumps(data)).encode("utf-8")
-        }
+        metrics = metrics_pb2.Metrics()
+        metrics.test_id = context["test_id"]
+        metrics.request_type = request_type
+        metrics.request_name = name
+        metrics.response_time = response_time
+        metrics.response_length = response_length
+        metrics.start_time = time.strftime(
+            "%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
+        if context.get("num_output_tokens"):
+            metrics.num_output_tokens = context["num_output_tokens"]
+        if context.get("num_input_tokens"):
+            metrics.num_input_tokens = context["num_input_tokens"]
+        if context.get("model_name"):
+            metrics.model_name = context["model_name"]
+        if context.get("model_method"):
+            metrics.model_method = context["model_method"]
+        metrics = json.dumps(MessageToDict(metrics)).encode("utf-8")
+        message = PubsubMessage(data=metrics)
 
         return message
-
 
     def log_request(self,
                     request_type: str,
