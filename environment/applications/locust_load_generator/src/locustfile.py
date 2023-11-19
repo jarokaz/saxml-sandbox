@@ -20,12 +20,17 @@ from common import config
 
 
 class SaxmlUser(HttpUser):
-    wait_time = between(1, 1)
+    wait_time = between(3, 3)
 
     @task
     def smoke_test(self):
 
-        with self.client.get("/generate", catch_response=True) as resp:
+        request = {
+            "prompt": "Who are you?"
+        }
+        with self.client.post("/generate", json=request, catch_response=True) as resp:
+            print('**************')
+            print(resp)
             resp.request_meta["context"]["num_output_tokens"] = 100
             resp.request_meta["context"]["model_name"] = self.environment.parsed_options.test_id
             resp.request_meta["context"]["model_method"] = "lm.Generate"

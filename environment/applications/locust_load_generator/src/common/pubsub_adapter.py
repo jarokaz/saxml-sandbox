@@ -44,6 +44,7 @@ class PubsubAdapter:
         self.environment.events.test_stop.add_listener(self.on_test_stop)
         self.environment.events.test_start.add_listener(self.on_test_start)
 
+
     def _prepare_message(self,
                          test_id: str,
                          request_type: str,
@@ -71,6 +72,12 @@ class PubsubAdapter:
             metrics.model_name = context["model_name"]
         if context.get("model_method"):
             metrics.model_method = context["model_method"]
+        if context.get("model_server_response_time"):
+            metrics.model_response_time = context["model_server_response_time"]
+        if context.get("prompt"):
+            metrics.prompt = context["prompt"]
+        if context.get("completion"):
+            metrics.completion = context["completion"]
         metrics = json.dumps(MessageToDict(metrics)).encode("utf-8")
         message = PubsubMessage(data=metrics)
 
