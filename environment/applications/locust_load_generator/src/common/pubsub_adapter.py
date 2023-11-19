@@ -73,7 +73,7 @@ class PubsubAdapter:
         if context.get("model_method"):
             metrics.model_method = context["model_method"]
         if context.get("model_server_response_time"):
-            metrics.model_response_time = context["model_server_response_time"]
+            metrics.model_server_response_time = context["model_server_response_time"]
         if context.get("prompt"):
             metrics.prompt = context["prompt"]
         if context.get("completion"):

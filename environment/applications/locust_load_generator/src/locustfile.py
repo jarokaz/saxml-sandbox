@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 
-from locust import  HttpUser, between, task
-from common import config
+from locust import  HttpUser, between, task, events
+#from common import config
 
 
 
@@ -23,17 +24,25 @@ class SaxmlUser(HttpUser):
     wait_time = between(3, 3)
 
     @task
-    def smoke_test(self):
+    def smoke_test(self): 
+
+        return
 
         request = {
             "prompt": "Who are you?"
         }
         with self.client.post("/generate", json=request, catch_response=True) as resp:
             print('**************')
-            print(resp)
-            resp.request_meta["context"]["num_output_tokens"] = 100
+            print(resp.json())
+            resp_dict = resp.json()
             resp.request_meta["context"]["model_name"] = self.environment.parsed_options.test_id
             resp.request_meta["context"]["model_method"] = "lm.Generate"
-            resp.request_meta["context"]["num_input_tokens"] = 200
+            resp.request_meta["context"]["model_server_response_time"] = resp_dict["performance_metrics"]["response_time"]
 
 
+#@events.test_start.add_listener
+#def _(environment, **kwargs):
+#    if environment.parsed_options.test_id:
+#        logging.info(f"Starting test: {environment.parsed_options.test_data}")
+#    else:
+#        logging.warning("Test ID not configured. Test will not be tracked.")
