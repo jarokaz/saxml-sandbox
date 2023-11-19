@@ -81,10 +81,13 @@ class PubsubAdapter:
         if self.messages:
             if force or (len(self.messages) >= self.batch_size):
                 try:
-                    logging.info(
-                        f"Publishing {len(self.messages)} request records to {self.topic_path}")
+ 
+                    start_time = time.time()
                     self.client.publish(topic=self.topic_path,
                                         messages=self.messages)
+                    total_time = int((time.time() - start_time) * 1000)
+                    logging.info(
+                        f"Published {len(self.messages)} request records to {self.topic_path} in {total_time} miliseconds")
                     self.messages = []
                 except Exception as e:
                     logging.error(

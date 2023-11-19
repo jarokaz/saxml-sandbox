@@ -283,6 +283,6 @@ gcloud compute tpus tpu-vm create jk-saxml-tpu-model-server \
 ## Get message schemal literal
 
 ```
-sed -z -e 's/"/\\"/g' -e 's/\n/\\n/g' ../applications/locust_load_generator/src/message.proto
+sed -z -e 's/"/\\"/g' -e 's/\n/\\n/g' ../applications/locust_load_generator/src/common/metrics.proto
 
 ```

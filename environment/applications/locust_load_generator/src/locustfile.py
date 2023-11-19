@@ -20,7 +20,7 @@ from common import config
 
 
 class SaxmlUser(HttpUser):
-    wait_time = between(5, 5)
+    wait_time = between(1, 1)
 
     @task
     def smoke_test(self):

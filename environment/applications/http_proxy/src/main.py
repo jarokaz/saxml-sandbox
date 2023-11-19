@@ -13,17 +13,23 @@
 # limitations under the License.
 
 import os
+import logging
 import sax
+import time
 
 from typing import Union
-
 from fastapi import FastAPI
+
+from pydantic import BaseModel
+
+
+class Prompt(BaseModel):
+    prompt: str
 
 # Temporary hack for experimentation
 _model_id = os.getenv('MODEL_ID', '/sax/test/llama7bfp16tpuv5e')
 _model = sax.Model(_model_id)
 _lm = _model.LM()
-
 
 app = FastAPI()
 
@@ -32,15 +38,22 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/generate")
-def lm_generate():
-    prompt = "Who are you?"
+@app.post("/generate")
+def lm_generate(prompt: Prompt):
 
-    #generate_response = _lm.Generate(prompt)
+    start_time = time.time()
+    completion = _lm.Generate(prompt.prompt) 
+    total_time = int((time.time() - start_time) * 1000)
 
-    #response = {
-    #    'generate_response': generate_response[0][0] 
-    #} 
-    response = "I am the greatest"
+    response = {
+        "prompt": prompt.prompt,
+        "response": completion,
+        "performance_metrics": {
+            "response_time": total_time 
+        }
+    }
     return response
+
+
+
 
