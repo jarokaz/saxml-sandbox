@@ -20,45 +20,70 @@ import time
 from typing import Union
 from fastapi import FastAPI, HTTPException, status
 
+from typing import Optional
 from pydantic import BaseModel
 
 
-class ModelOptions
+class ModelOptions(BaseModel):
+    temperature: Optional[float] = None
+    top_k: Optional[int] = None
+    top_p: Optional[float] = None
+    per_example_max_decode_steps: Optional[int] = None
 
-class Prompt(BaseModel):
+
+class Query(BaseModel):
     prompt: str
-    
+    model_id: str
+#    model_options: ModelOptions
+
+
+class TestThroughputParams(BaseModel):
+    delay: int = 100
 
 # Temporary hack for experimentation
+
 _model_id = os.getenv('MODEL_ID', '/sax/test/llama7bfp16tpuv5e')
 _model = sax.Model(_model_id)
 _lm = _model.LM()
 
+_lm_models = {
+    _model_id: _lm
+}
+
 app = FastAPI()
+
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+    
+@app.post("/test_througput")
+def test_throughput(test_params: TestThroughputParams):
+    logging.info(f"Going to sleep for {test_params.delay} seconds")
+    time.sleep(test_params.delay)
+
+    return {"Response": "Whatever"}
 
 
 @app.post("/generate", status_code=status.HTTP_200_OK)
-def lm_generate(prompt: Prompt):
+def lm_generate(query: Query):
 
     try:
+        lm = _lm_models.get(query.model_id)
+        if not lm:
+            raise RuntimeError(f"Unsupported model: {query.model_id}")
         start_time = time.time()
-        completions = _lm.Generate(prompt.prompt) 
+        completions = _lm.Generate(query.prompt)
         total_time = int((time.time() - start_time) * 1000)
         response = {
             "response": completions,
             "performance_metrics": {
-                "response_time": total_time 
+                "response_time": total_time
+            }
         }
-    }
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Exception in Saxml client") 
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Exception in Saxml client: {e}")
 
     return response
-
-
-
-

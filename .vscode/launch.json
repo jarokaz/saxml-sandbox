@@ -4,7 +4,7 @@
             "name": "Kubernetes: Run",
             "type": "cloudcode.kubernetes",
             "request": "launch",
-            "skaffoldConfig": "${workspaceFolder}/environment/applications/locust_load_generator/skaffold.yaml",
+            "skaffoldConfig": "${workspaceFolder}/environment/applications/http_proxy/skaffold.yaml",
             "watch": true,
             "cleanUp": true,
             "portForward": true,
