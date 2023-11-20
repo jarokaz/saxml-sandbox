@@ -34,7 +34,7 @@ class ModelOptions(BaseModel):
 class Query(BaseModel):
     prompt: str
     model_id: str
-#    model_options: ModelOptions
+    model_options: ModelOptions
 
 
 class TestThroughputParams(BaseModel):
@@ -69,6 +69,7 @@ def test_throughput(test_params: TestThroughputParams):
 def lm_generate(query: Query):
 
     try:
+        print(query)
         lm = _lm_models.get(query.model_id)
         if not lm:
             raise RuntimeError(f"Unsupported model: {query.model_id}")
