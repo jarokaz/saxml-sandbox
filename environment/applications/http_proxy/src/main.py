@@ -18,13 +18,16 @@ import sax
 import time
 
 from typing import Union
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 
 from pydantic import BaseModel
 
 
+class ModelOptions
+
 class Prompt(BaseModel):
     prompt: str
+    
 
 # Temporary hack for experimentation
 _model_id = os.getenv('MODEL_ID', '/sax/test/llama7bfp16tpuv5e')
@@ -38,20 +41,22 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.post("/generate")
+@app.post("/generate", status_code=status.HTTP_200_OK)
 def lm_generate(prompt: Prompt):
 
-    start_time = time.time()
-    completion = _lm.Generate(prompt.prompt) 
-    total_time = int((time.time() - start_time) * 1000)
-
-    response = {
-        "prompt": prompt.prompt,
-        "response": completion,
-        "performance_metrics": {
-            "response_time": total_time 
+    try:
+        start_time = time.time()
+        completions = _lm.Generate(prompt.prompt) 
+        total_time = int((time.time() - start_time) * 1000)
+        response = {
+            "response": completions,
+            "performance_metrics": {
+                "response_time": total_time 
         }
     }
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Exception in Saxml client") 
+
     return response
 
 
