@@ -16,7 +16,7 @@ import json
 import logging
 
 from locust import  HttpUser, between, task, events
-#from common import config
+from common import config
 
 
 
@@ -26,6 +26,11 @@ class SaxmlUser(HttpUser):
     @task
     def smoke_test(self): 
 
+        #print(self.environment.parsed_options.test_id)
+        #print(config.test_data)
+        print('****************')
+        print(len(config.test_data), len(config.test_data[0]), len(config.test_data[1]))
+        
         return
 
         request = {

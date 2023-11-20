@@ -14,9 +14,15 @@
 # limitations under the License.
 
 import logging
+import jsonlines
+
+from google.cloud import storage
 
 from locust import events
 from common import PubsubAdapter
+
+test_data = []
+
 
 @events.init.add_listener
 def on_locust_init(environment, **kwargs):
@@ -35,10 +41,31 @@ def on_locust_init(environment, **kwargs):
 
 @events.test_start.add_listener
 def _(environment, **kwargs):
+    global test_data
+
     if environment.parsed_options.test_id:
         logging.info(f"Starting test: {environment.parsed_options.test_id}")
     else:
         logging.warning("Test ID not configured. Test will not be tracked.")
+
+    test_data = environment.parsed_options.test_id 
+
+    client = storage.Client()
+    bucket_name = environment.parsed_options.test_data.split('/')[2]
+    blob_name = "/".join(environment.parsed_options.test_data.split('/')[3:])
+    bucket = client.get_bucket(bucket_name) 
+    blob = storage.Blob(blob_name, bucket)
+
+    data_file_name = '/tmp/data.jsonl'
+    with open(data_file_name, 'wb') as f:
+        blob.download_to_file(f)
+    
+    test_data = []
+    with jsonlines.open(data_file_name) as reader:
+        for obj in reader:
+            test_data.append(obj['input'])
+
+    logging.info(f"Loaded {len(test_data)} test prompts.") 
 
 
 @events.test_stop.add_listener
@@ -48,10 +75,9 @@ def _(environment, **kwargs):
 
 @events.init_command_line_parser.add_listener
 def _(parser):
-    parser.add_argument("--test_id", type=str, env_var="TEST_ID",
-                        include_in_web_ui=True,  help="Test ID")
-    parser.add_argument("--model_id", type=str, env_var="MODEL_ID",
-                        include_in_web_ui=True, default="", help="Model ID")
+
+    parser.add_argument("--model_id", type=str, include_in_web_ui=True, default="", help="Model ID")
+    parser.add_argument("--test_id", type=str, include_in_web_ui=True, default="", help="Test ID")
     parser.add_argument("--topic_name", type=str, env_var="TOPIC_NAME",
                         include_in_web_ui=False, default="",  help="Pubsub topic name")
     parser.add_argument("--project_id", type=str, env_var="PROJECT_ID",
