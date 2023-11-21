@@ -34,11 +34,11 @@ class ModelOptions(BaseModel):
 class Query(BaseModel):
     prompt: str
     model_id: str
-    model_options: ModelOptions
+    model_options: Optional[ModelOptions]
 
 
 class TestThroughputParams(BaseModel):
-    delay: int = 100
+    delay: float = 1.0
 
 # Temporary hack for experimentation
 
@@ -57,7 +57,7 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
     
-@app.post("/test_througput")
+@app.post("/test_throughput")
 def test_throughput(test_params: TestThroughputParams):
     logging.info(f"Going to sleep for {test_params.delay} seconds")
     time.sleep(test_params.delay)

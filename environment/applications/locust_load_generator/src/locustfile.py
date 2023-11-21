@@ -14,13 +14,26 @@
 
 import json
 import logging
+import random
 
 from locust import  HttpUser, between, task, events
 from common import config
 
 
+class FastAPIStressUser(HttpUser):
+    weight = 1
+    wait_time = between(0.1, 0.2)
+
+    @task
+    def test_througput(self):
+        request = {
+            "delay": 0.2 
+        }
+        self.client.post("/test_throughput", json=request)
+
 
 class SaxmlUser(HttpUser):
+    weight = 0
     wait_time = between(3, 3)
 
     @task
