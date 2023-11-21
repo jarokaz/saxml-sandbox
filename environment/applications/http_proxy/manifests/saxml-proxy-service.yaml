@@ -26,4 +26,4 @@ spec:
       name: uvicorn-port 
   selector:
     app: saxml-proxy 
-  type: LoadBalancer
+  type: ClusterIP 

@@ -91,4 +91,4 @@ def _(parser):
     parser.add_argument("--test_data", type=str, env_var="TEST_DATA",
                         include_in_web_ui=True, default="", help="GCS URI to test data")
     parser.add_argument("--message_buffer_size", type=int, env_var="MESSAGE_BUFFER_SIZE",
-                        include_in_web_ui=True, default=5, help="The size of the batch for Pubsub transactions")
+                        include_in_web_ui=False, default=25, help="The size of the batch for Pubsub transactions")

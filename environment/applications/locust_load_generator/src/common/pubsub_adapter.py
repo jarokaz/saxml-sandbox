@@ -17,19 +17,33 @@ import json
 import logging
 import time
 from datetime import datetime
-
+import gevent
 import grpc.experimental.gevent as grpc_gevent
 
 from google.cloud import pubsub_v1
-from locust.env import Environment
 from google.protobuf.json_format import MessageToDict
 from google.pubsub_v1.services.publisher.client import PublisherClient
 from google.pubsub_v1.types import PubsubMessage
+
+from locust.env import Environment
+from locust.runners import STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP, STATE_RUNNING, MasterRunner
 
 from common import metrics_pb2
 
 # patch grpc so that it uses gevent instead of asyncio
 grpc_gevent.init_gevent()
+
+def greenlet_exception_handler():
+    """
+    Returns a function that can be used as an argument to Greenlet.link_exception() to capture
+    unhandled exceptions.
+    """
+    def exception_handler(greenlet):
+        logging.error("Unhandled exception in greenlet: %s", greenlet,
+                      exc_info=greenlet.exc_info)
+        global unhandled_greenlet_exception
+        unhandled_greenlet_exception = True
+    return exception_handler
 
 
 class PubsubAdapter:
@@ -40,48 +54,27 @@ class PubsubAdapter:
         self.messages = []
         self.batch_size = batch_size
         self.maximum_batch_size = maximum_batch_size
-        self.environment.events.request.add_listener(self.log_request)
-        self.environment.events.test_stop.add_listener(self.on_test_stop)
-        self.environment.events.test_start.add_listener(self.on_test_start)
+
+        if not isinstance(environment.runner, MasterRunner):
+            self.environment.events.request.add_listener(self.log_request)
+            self.environment.events.test_stop.add_listener(self.on_test_stop)
+            self.environment.events.test_start.add_listener(self.on_test_start)
 
 
-    def _prepare_message(self,
-                         test_id: str,
-                         request_type: str,
-                         name: str,
-                         response_time: int,
-                         response_length: int,
-                         response: object,
-                         context: dict,
-                         exception: Exception,
-                         start_time: datetime):
+    def flusher(self):
+        logging.info("Entering the Pubsub publishing greenlet")
+        logging.info("Waiting for the runner to start")
+        while self.environment.runner.state != STATE_RUNNING:
+            gevent.sleep(1)
+            continue
+        logging.info("The runner has starterd.")
+        while self.environment.runner.state == STATE_RUNNING:
+#        while not self.environment.runner.state in [STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP]:
+            gevent.sleep(1)
+            self.flush_messages()
+        logging.info("The runner has stopped.")
+        logging.info("Exiting the Pubsub publishing greenlet.")
 
-        metrics = metrics_pb2.Metrics()
-        metrics.test_id = test_id
-        metrics.request_type = request_type
-        metrics.request_name = name
-        metrics.response_time = response_time
-        metrics.response_length = response_length
-        metrics.start_time = time.strftime(
-            "%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
-        if context.get("num_output_tokens"):
-            metrics.num_output_tokens = context["num_output_tokens"]
-        if context.get("num_input_tokens"):
-            metrics.num_input_tokens = context["num_input_tokens"]
-        if context.get("model_name"):
-            metrics.model_name = context["model_name"]
-        if context.get("model_method"):
-            metrics.model_method = context["model_method"]
-        if context.get("model_server_response_time"):
-            metrics.model_server_response_time = context["model_server_response_time"]
-        if context.get("prompt"):
-            metrics.prompt = context["prompt"]
-        if context.get("completion"):
-            metrics.completion = context["completion"]
-        metrics = json.dumps(MessageToDict(metrics)).encode("utf-8")
-        message = PubsubMessage(data=metrics)
-
-        return message
 
     def flush_messages(self, force: bool=False):
 
@@ -133,7 +126,45 @@ class PubsubAdapter:
             start_time=start_time)
 
         self.messages.append(message)
-        self.flush_messages()
+
+    def _prepare_message(self,
+                         test_id: str,
+                         request_type: str,
+                         name: str,
+                         response_time: int,
+                         response_length: int,
+                         response: object,
+                         context: dict,
+                         exception: Exception,
+                         start_time: datetime):
+
+        metrics = metrics_pb2.Metrics()
+        metrics.test_id = test_id
+        metrics.request_type = request_type
+        metrics.request_name = name
+        metrics.response_time = response_time
+        metrics.response_length = response_length
+        metrics.start_time = time.strftime(
+            "%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
+        if context.get("num_output_tokens"):
+            metrics.num_output_tokens = context["num_output_tokens"]
+        if context.get("num_input_tokens"):
+            metrics.num_input_tokens = context["num_input_tokens"]
+        if context.get("model_name"):
+            metrics.model_name = context["model_name"]
+        if context.get("model_method"):
+            metrics.model_method = context["model_method"]
+        if context.get("model_server_response_time"):
+            metrics.model_server_response_time = context["model_server_response_time"]
+        if context.get("prompt"):
+            metrics.prompt = context["prompt"]
+        if context.get("completion"):
+            metrics.completion = context["completion"]
+        metrics = json.dumps(MessageToDict(metrics)).encode("utf-8")
+        message = PubsubMessage(data=metrics)
+
+        return message
+
 
     def on_test_stop(self, environment: Environment, **kwargs):
 
@@ -152,4 +183,7 @@ class PubsubAdapter:
             logging.warning(
                 f"Test ID not configured. Pubsub adapter tracking disabled."
             )
+        self.batch_size = environment.parsed_options.message_buffer_size
         self.messages = []
+        gevent.spawn(self.flusher).link_exception(greenlet_exception_handler())
+        logging.info("Spawned Pubsub publishing greenlet")
