@@ -16,27 +16,42 @@
 import logging
 import jsonlines
 import re
+import gevent
 
 from google.cloud import storage
 
 from locust import events
-from locust.runners import MasterRunner
+from locust.runners import MasterRunner, WorkerRunner
 from common import PubsubAdapter
 
-test_data = []
+def greenlet_exception_handler():
+    """
+    Returns a function that can be used as an argument to Greenlet.link_exception() to capture
+    unhandled exceptions.
+    """
+    def exception_handler(greenlet):
+        logging.error("Unhandled exception in greenlet: %s", greenlet,
+                      exc_info=greenlet.exc_info)
+        global unhandled_greenlet_exception
+        unhandled_greenlet_exception = True
+    return exception_handler
 
 
 @events.init.add_listener
 def on_locust_init(environment, **kwargs):
+    global test_data 
+    global test_id 
+    global pubsub_adapter
+
     logging.info("INITIALIZING LOCUST ....")
     if not isinstance(environment.runner, MasterRunner):
         if environment.parsed_options.topic_name and environment.parsed_options.project_id:
             topic_path = f"projects/{environment.parsed_options.project_id}/topics/{environment.parsed_options.topic_name}"
             logging.info(
                 f'Registering PubsubAdapter for topic: {topic_path}.')
-            PubsubAdapter(environment=environment,
-                        topic_path=topic_path,
-                        batch_size=environment.parsed_options.message_buffer_size)
+            pubsub_adapter = PubsubAdapter(environment=environment,
+                                           topic_path=topic_path,
+                                           batch_size=environment.parsed_options.message_buffer_size)
         else:
             logging.info(
                 'No Pubsub topic configured. User requests will NOT be tracked. To enable tracking you must set --topic_name and --project_id parameters.')
@@ -45,9 +60,16 @@ def on_locust_init(environment, **kwargs):
 @events.test_start.add_listener
 def _(environment, **kwargs):
     global test_data
+    global test_id
+    global pubsub_adapter
 
+    test_data = []
+    test_id =  environment.parsed_options.test_id 
+
+    
     if not isinstance(environment.runner, MasterRunner):
         try:
+            # Try loading test data
             test_data_uri = environment.parsed_options.test_data
             gcs_uri_pattern = "^gs:\/\/[a-z0-9.\-_]{3,63}\/(.+\/)*(.+)$"
             if not test_data_uri:
@@ -69,14 +91,32 @@ def _(environment, **kwargs):
                     test_data.append(obj['input'])
 
             logging.info(f"Loaded {len(test_data)} test prompts.")
+
+            test_id = environment.parsed_options.test_id
+            if test_id:
+                logging.info("Spawning Pubsub publishing greenlet")
+                pubsub_adapter.test_id = test_id
+                gevent.spawn(pubsub_adapter.flusher, ).link_exception(greenlet_exception_handler())
+            else:
+                logging.warning("Test ID not provided. Publishing to Pubsub disabled")
+
         except Exception as e:
-            logging.error(f"Error loading test data: {e}. Users requiring test data will fail.") 
+            logging.error(f"Error loading test data: {e}. Stopping the runner") 
             test_data = []
+            environment.runner.quit()
 
 
 @events.test_stop.add_listener
 def _(environment, **kwargs):
-    logging.info(f"Stopping test: {environment.parsed_options.test_id}")
+    global pubsub_adapter
+    global test_id
+
+    if not isinstance(environment.runner, MasterRunner):
+        logging.info(f"Stopping test: {test_id if test_id else 'unknown test ID'}")
+        if test_id:
+            logging.info(
+                f"Flushing the remaining messages as test {test_id if test_id else 'unknown test ID'} is stopping")
+        pubsub_adapter.flush_messages(force=True)
 
 
 @events.init_command_line_parser.add_listener

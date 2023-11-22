@@ -33,17 +33,7 @@ from common import metrics_pb2
 # patch grpc so that it uses gevent instead of asyncio
 grpc_gevent.init_gevent()
 
-def greenlet_exception_handler():
-    """
-    Returns a function that can be used as an argument to Greenlet.link_exception() to capture
-    unhandled exceptions.
-    """
-    def exception_handler(greenlet):
-        logging.error("Unhandled exception in greenlet: %s", greenlet,
-                      exc_info=greenlet.exc_info)
-        global unhandled_greenlet_exception
-        unhandled_greenlet_exception = True
-    return exception_handler
+
 
 
 class PubsubAdapter:
@@ -54,11 +44,12 @@ class PubsubAdapter:
         self.messages = []
         self.batch_size = batch_size
         self.maximum_batch_size = maximum_batch_size
+        self.test_id = ""
 
-        if not isinstance(environment.runner, MasterRunner):
-            self.environment.events.request.add_listener(self.log_request)
-            self.environment.events.test_stop.add_listener(self.on_test_stop)
-            self.environment.events.test_start.add_listener(self.on_test_start)
+#        if not isinstance(environment.runner, MasterRunner):
+#            self.environment.events.request.add_listener(self.log_request)
+#            self.environment.events.test_stop.add_listener(self.on_test_stop)
+#            self.environment.events.test_start.add_listener(self.on_test_start)
 
 
     def flusher(self):
@@ -69,7 +60,6 @@ class PubsubAdapter:
             continue
         logging.info("The runner has starterd.")
         while self.environment.runner.state == STATE_RUNNING:
-#        while not self.environment.runner.state in [STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP]:
             gevent.sleep(1)
             self.flush_messages()
         logging.info("The runner has stopped.")
@@ -166,24 +156,22 @@ class PubsubAdapter:
         return message
 
 
-    def on_test_stop(self, environment: Environment, **kwargs):
-
-        logging.info(
-            f"Flushing the remaining messages as test {self.test_id} is stopping")
-        self.flush_messages(force=True)
-
-    def on_test_start(self, environment: Environment, **kwargs):
-         
-        if environment.parsed_options.test_id:
-            self.test_id = environment.parsed_options.test_id
-            logging.info(
-                f"Pubsub adapter configured for test {self.test_id}")
-        else:
-            self.test_id = None
-            logging.warning(
-                f"Test ID not configured. Pubsub adapter tracking disabled."
-            )
-        self.batch_size = environment.parsed_options.message_buffer_size
-        self.messages = []
-        gevent.spawn(self.flusher).link_exception(greenlet_exception_handler())
-        logging.info("Spawned Pubsub publishing greenlet")
+#    def on_test_stop(self, environment: Environment, **kwargs):
+#
+#        logging.info(
+#            f"Flushing the remaining messages as test {self.test_id} is stopping")
+#        self.flush_messages(force=True)
+#
+#    def on_test_start(self, environment: Environment, **kwargs):
+#         
+#        if self.test_id:
+#            logging.info(
+#                f"Pubsub adapter configured for test {self.test_id}")
+#        else:
+#            logging.warning(
+#                f"Test ID not configured. Pubsub adapter tracking disabled."
+#            )
+#        self.batch_size = environment.parsed_options.message_buffer_size
+#        self.messages = []
+#        gevent.spawn(self.flusher).link_exception(greenlet_exception_handler())
+#        logging.info("Spawned Pubsub publishing greenlet")

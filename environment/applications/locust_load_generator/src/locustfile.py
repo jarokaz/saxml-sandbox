@@ -21,7 +21,7 @@ from common import config
 
 
 class FastAPIStressUser(HttpUser):
-    weight = 1
+    weight = 0
     wait_time = between(0.1, 0.2)
 
     @task
@@ -29,31 +29,31 @@ class FastAPIStressUser(HttpUser):
         request = {
             "delay": 0.2 
         }
-        self.client.post("/test_throughput", json=request)
+        self.client.post("/starlette_test_throughput", json=request)
 
 
 class SaxmlUser(HttpUser):
-    weight = 0
+    weight = 1
     wait_time = between(3, 3)
 
     @task
-    def smoke_test(self): 
+    def lm_generate(self): 
 
-        #print(self.environment.parsed_options.test_id)
-        #print(config.test_data)
-        print('****************')
-        print(len(config.test_data), len(config.test_data[0]), len(config.test_data[1]))
+        if not config.test_data:
+            logging.error("No test data configured.") 
+            return
         
-        return
-
+        prompt = config.test_data[random.randint(0, len(config.test_data))]
         request = {
-            "prompt": "Who are you?"
+            "prompt": prompt,
+            "model_options": {}
         }
+
         with self.client.post("/generate", json=request, catch_response=True) as resp:
             print('**************')
             print(resp.json())
             resp_dict = resp.json()
-            resp.request_meta["context"]["model_name"] = self.environment.parsed_options.test_id
+            resp.request_meta["context"]["model_name"] = self.environment.parsed_options.model_id
             resp.request_meta["context"]["model_method"] = "lm.Generate"
             resp.request_meta["context"]["model_server_response_time"] = resp_dict["performance_metrics"]["response_time"]
 

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 import logging
 import sax
@@ -19,6 +20,10 @@ import time
 
 from typing import Union
 from fastapi import FastAPI, HTTPException, status
+
+from starlette.concurrency import run_in_threadpool
+
+
 
 from typing import Optional
 from pydantic import BaseModel
@@ -57,11 +62,25 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
     
-@app.post("/test_throughput")
+@app.post("/sync_path_test_throughput")
 def test_throughput(test_params: TestThroughputParams):
     logging.info(f"Going to sleep for {test_params.delay} seconds")
     time.sleep(test_params.delay)
 
+    return {"Response": "Whatever"}
+
+
+@app.post("/asyncio_test_throughput")
+async def test_throughput(test_params: TestThroughputParams):
+    logging.info(f"Going to sleep for {test_params.delay} seconds")
+    await asyncio.sleep(test_params.delay)
+
+    return {"Response": "Whatever"}
+
+@app.post("/starlette_test_throughput")
+async def test_throughput(test_params: TestThroughputParams):
+    logging.info(f"Going to sleep for {test_params.delay} seconds")
+    await run_in_threadpool(time.sleep, test_params.delay) 
     return {"Response": "Whatever"}
 
 

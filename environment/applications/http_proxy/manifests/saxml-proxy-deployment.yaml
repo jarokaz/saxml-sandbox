@@ -19,7 +19,7 @@ metadata:
   labels:
     name: saxml-proxy 
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: saxml-proxy 
