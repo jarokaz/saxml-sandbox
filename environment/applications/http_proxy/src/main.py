@@ -17,6 +17,7 @@ import os
 import logging
 import sax
 import time
+import random
 
 from typing import Union
 from fastapi import FastAPI, HTTPException, status
@@ -96,13 +97,17 @@ def lm_generate(query: Query):
         completions = _lm.Generate(query.prompt)
         total_time = int((time.time() - start_time) * 1000)
         response = {
-            "response": completions,
+            "completions": completions,
             "performance_metrics": {
                 "response_time": total_time
             }
         }
+        
+        if random.randint(0, 10) > 8:
+            raise RuntimeError("Let's trigger random error")
+
     except Exception as e:
-        print(e)
+        logging.error("Exception when invoking Saxml client: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Exception in Saxml client: {e}")
 

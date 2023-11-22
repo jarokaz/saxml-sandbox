@@ -14,7 +14,7 @@
 
 
 locals {
-    default_message_schema = "syntax = \"proto3\";\n\nmessage Metrics {\n  string test_id=1;\n  string request_type = 2;\n  string request_name=3;\n  int32 response_length=4;\n  float response_time=5;\n  string start_time=6;\n  optional string model_name=7;\n  optional string model_method=8;\n  optional int32 num_output_tokens=9;\n  optional int32 num_input_tokens=10;\n  optional int32 model_server_response_time=11;\n  optional string prompt=12;\n  optional string prompt_parameters=13;\n  optional string completions=14;\n}"
+    default_message_schema = "syntax = \"proto3\";\n\nmessage Metrics {\n  string test_id=1;\n  string request_type = 2;\n  string request_name=3;\n  int32 response_length=4;\n  float response_time=5;\n  string start_time=6;\n  optional string model_name=7;\n  optional string model_method=8;\n  optional int32 num_output_tokens=9;\n  optional int32 num_input_tokens=10;\n  optional int32 model_server_response_time=11;\n  optional string query=12;\n  optional string completions=13;\n}"
     default_table_schema = <<EOF
 [
     {
@@ -126,16 +126,10 @@ locals {
         "description": "Response time from a model server"
     },
     {
-        "name": "prompt",
-        "type": "STRING",
-        "mode": "NULLABLE",
-        "description": "LLM Prompt"
-    },
-    {
-        "name": "prompt_parameters",
+        "name": "query",
         "type": "JSON",
         "mode": "NULLABLE",
-        "description": "Decoder parameters"
+        "description": "LLM query"
     },
     {
         "name": "completions",

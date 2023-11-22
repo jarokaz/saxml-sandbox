@@ -53,6 +53,7 @@ def on_locust_init(environment, **kwargs):
                                            topic_path=topic_path,
                                            batch_size=environment.parsed_options.message_buffer_size)
         else:
+            pubsub_adapter = None
             logging.info(
                 'No Pubsub topic configured. User requests will NOT be tracked. To enable tracking you must set --topic_name and --project_id parameters.')
 
@@ -66,7 +67,6 @@ def _(environment, **kwargs):
     test_data = []
     test_id =  environment.parsed_options.test_id 
 
-    
     if not isinstance(environment.runner, MasterRunner):
         try:
             # Try loading test data
@@ -92,7 +92,6 @@ def _(environment, **kwargs):
 
             logging.info(f"Loaded {len(test_data)} test prompts.")
 
-            test_id = environment.parsed_options.test_id
             if test_id:
                 logging.info("Spawning Pubsub publishing greenlet")
                 pubsub_adapter.test_id = test_id
@@ -112,10 +111,9 @@ def _(environment, **kwargs):
     global test_id
 
     if not isinstance(environment.runner, MasterRunner):
-        logging.info(f"Stopping test: {test_id if test_id else 'unknown test ID'}")
         if test_id:
             logging.info(
-                f"Flushing the remaining messages as test {test_id if test_id else 'unknown test ID'} is stopping")
+                f"Flushing the remaining messages as test: {test_id if test_id else 'unknown test ID'} is stopping")
         pubsub_adapter.flush_messages(force=True)
 
 
@@ -132,3 +130,5 @@ def _(parser):
                         include_in_web_ui=True, default="", help="GCS URI to test data")
     parser.add_argument("--message_buffer_size", type=int, env_var="MESSAGE_BUFFER_SIZE",
                         include_in_web_ui=False, default=25, help="The size of the batch for Pubsub transactions")
+    parser.add_argument("--log_request_and_response", include_in_web_ui=True, default=True, 
+                        help="Whether to track full requests and responses")

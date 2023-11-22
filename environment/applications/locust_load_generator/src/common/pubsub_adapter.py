@@ -46,13 +46,13 @@ class PubsubAdapter:
         self.maximum_batch_size = maximum_batch_size
         self.test_id = ""
 
-#        if not isinstance(environment.runner, MasterRunner):
-#            self.environment.events.request.add_listener(self.log_request)
-#            self.environment.events.test_stop.add_listener(self.on_test_stop)
-#            self.environment.events.test_start.add_listener(self.on_test_start)
 
-
-    def flusher(self):
+    def flusher(self, sleep_time=1):
+        """This function is executed by a publishing greenlet
+           
+           It awakens every configured seconds and if the runner is in the 
+           running state it flushes all accumulated metrics messages.
+        """
         logging.info("Entering the Pubsub publishing greenlet")
         logging.info("Waiting for the runner to start")
         while self.environment.runner.state != STATE_RUNNING:
@@ -60,14 +60,14 @@ class PubsubAdapter:
             continue
         logging.info("The runner has starterd.")
         while self.environment.runner.state == STATE_RUNNING:
-            gevent.sleep(1)
+            gevent.sleep(sleep_time)
             self.flush_messages()
         logging.info("The runner has stopped.")
         logging.info("Exiting the Pubsub publishing greenlet.")
 
 
     def flush_messages(self, force: bool=False):
-
+        """Writes all metrics messages in a message queue to a configurred Pubsub topic."""
         if self.messages:
             if force or (len(self.messages) >= self.batch_size):
                 try:
@@ -93,7 +93,9 @@ class PubsubAdapter:
                     exception: Exception,
                     start_time: datetime,
                     **kwargs):
-
+        """This is an event handler for Locust on_request events.
+           It prepares a metric proto buffer and appends it to a message queue.
+        """
         if not self.test_id:
             logging.warning(
                 "Test ID NOT configured. The message will not be tracked.")
@@ -127,6 +129,7 @@ class PubsubAdapter:
                          context: dict,
                          exception: Exception,
                          start_time: datetime):
+        """Prepare a metrics protobuf."""
 
         metrics = metrics_pb2.Metrics()
         metrics.test_id = test_id
@@ -148,30 +151,12 @@ class PubsubAdapter:
             metrics.model_server_response_time = context["model_server_response_time"]
         if context.get("prompt"):
             metrics.prompt = context["prompt"]
-        if context.get("completion"):
-            metrics.completion = context["completion"]
+        if context.get("prompt_parameters"):
+            metrics.prompt_parameters = context["prompt_parameters"]
+        if context.get("completions"):
+            metrics.completion = context["completions"]
         metrics = json.dumps(MessageToDict(metrics)).encode("utf-8")
         message = PubsubMessage(data=metrics)
 
         return message
 
-
-#    def on_test_stop(self, environment: Environment, **kwargs):
-#
-#        logging.info(
-#            f"Flushing the remaining messages as test {self.test_id} is stopping")
-#        self.flush_messages(force=True)
-#
-#    def on_test_start(self, environment: Environment, **kwargs):
-#         
-#        if self.test_id:
-#            logging.info(
-#                f"Pubsub adapter configured for test {self.test_id}")
-#        else:
-#            logging.warning(
-#                f"Test ID not configured. Pubsub adapter tracking disabled."
-#            )
-#        self.batch_size = environment.parsed_options.message_buffer_size
-#        self.messages = []
-#        gevent.spawn(self.flusher).link_exception(greenlet_exception_handler())
-#        logging.info("Spawned Pubsub publishing greenlet")

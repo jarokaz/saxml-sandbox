@@ -44,23 +44,18 @@ class SaxmlUser(HttpUser):
             return
         
         prompt = config.test_data[random.randint(0, len(config.test_data))]
+        model_options = {}
         request = {
             "prompt": prompt,
-            "model_options": {}
+            "model_options": model_options, 
         }
 
         with self.client.post("/generate", json=request, catch_response=True) as resp:
-            print('**************')
-            print(resp.json())
             resp_dict = resp.json()
             resp.request_meta["context"]["model_name"] = self.environment.parsed_options.model_id
             resp.request_meta["context"]["model_method"] = "lm.Generate"
             resp.request_meta["context"]["model_server_response_time"] = resp_dict["performance_metrics"]["response_time"]
+            if self.environment.parsed_options.log_request_and_response:
+                resp.request_meta["context"]["request"] = json.dumps(request) 
+                resp.request_meta["context"]["completions"] = json.dumps(resp_dict["completions"])
 
-
-#@events.test_start.add_listener
-#def _(environment, **kwargs):
-#    if environment.parsed_options.test_id:
-#        logging.info(f"Starting test: {environment.parsed_options.test_data}")
-#    else:
-#        logging.warning("Test ID not configured. Test will not be tracked.")

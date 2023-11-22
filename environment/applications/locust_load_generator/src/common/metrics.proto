@@ -12,7 +12,6 @@ message Metrics {
   optional int32 num_output_tokens=9;
   optional int32 num_input_tokens=10;
   optional int32 model_server_response_time=11;
-  optional string prompt=12;
-  optional string prompt_parameters=13;
-  optional string completions=14;
+  optional string query=12;
+  optional string completions=13;
 }
