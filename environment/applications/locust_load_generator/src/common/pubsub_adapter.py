@@ -26,6 +26,7 @@ from google.pubsub_v1.services.publisher.client import PublisherClient
 from google.pubsub_v1.types import PubsubMessage
 
 from locust.env import Environment
+from locust import events
 from locust.runners import STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP, STATE_RUNNING, MasterRunner
 
 from common import metrics_pb2
@@ -34,24 +35,58 @@ from common import metrics_pb2
 grpc_gevent.init_gevent()
 
 
+def greenlet_exception_handler():
+    """
+    Returns a function that can be used as an argument to Greenlet.link_exception() to capture
+    unhandled exceptions.
+    """
+    def exception_handler(greenlet):
+        logging.error("Unhandled exception in greenlet: %s", greenlet,
+                      exc_info=greenlet.exc_info)
+        global unhandled_greenlet_exception
+        unhandled_greenlet_exception = True
+    return exception_handler
 
 
 class PubsubAdapter:
-    def __init__(self, environment: Environment, topic_path: str, batch_size=10, maximum_batch_size=500):
-        self.environment = environment
-        self.topic_path = topic_path
+    def __init__(self, project_id: str, topic_name: str, minimum_message_queue_lenght: int = 10, maximum_message_queue_length: int = 500, flusher_sleep_time: int = 1):
+        self.topic_path = f"projects/{project_id}/topics/{topic_name}"
         self.client = PublisherClient()
         self.messages = []
-        self.batch_size = batch_size
-        self.maximum_batch_size = maximum_batch_size
-        self.test_id = ""
+        self.minimum_message_queue_length = minimum_message_queue_lenght
+        self.maximum_message_queue_length = maximum_message_queue_length
+        self.flusher_sleep_time = flusher_sleep_time
+        self.request_handler = None
+        self.test_id = None
 
+    def on_test_start(self, environment, **kwargs):
+        """Registers the request handler and starts the publishing greenlet."""
+
+        self.test_id = None
+        if not isinstance(environment.runner, MasterRunner):
+            # Remove any previously registered request handler
+            if self.request_handler:
+                environment.events.request.remove_listener(
+                    self.request_handler)
+                self.request_handler = None
+
+            if environment.parsed_options.enable_metrics_tracking:
+                if environment.parsed_options.test_id:
+                    self.test_id = environment.parsed_options.test_id
+                    logging.info("Adding request listener")
+                    self.request_handler = environment.events.request.add_listener(
+                        self.log_request)
+                    logging.info("Spawning a publishing greenlet")
+                    gevent.spawn(self.flusher, self.flusher_sleep_time).link_exception(
+                        greenlet_exception_handler())
+            else:
+                logging.warning("Test ID not set. Metrics tracking disabled.")
 
     def flusher(self, sleep_time=1):
         """This function is executed by a publishing greenlet
-           
-           It awakens every configured seconds and if the runner is in the 
-           running state it flushes all accumulated metrics messages.
+
+           It awakens every configured seconds and publishes 
+           accumulated metrics to a configured Pubsub topic.
         """
         logging.info("Entering the Pubsub publishing greenlet")
         logging.info("Waiting for the runner to start")
@@ -61,27 +96,26 @@ class PubsubAdapter:
         logging.info("The runner has starterd.")
         while self.environment.runner.state == STATE_RUNNING:
             gevent.sleep(sleep_time)
-            self.flush_messages()
+            if len(self.messages) >= self.minimum_message_queue_length:
+                self.flush_messages()
         logging.info("The runner has stopped.")
+        self.flush_messages()
         logging.info("Exiting the Pubsub publishing greenlet.")
 
-
-    def flush_messages(self, force: bool=False):
+    def flush_messages(self):
         """Writes all metrics messages in a message queue to a configurred Pubsub topic."""
-        if self.messages:
-            if force or (len(self.messages) >= self.batch_size):
-                try:
- 
-                    start_time = time.time()
-                    self.client.publish(topic=self.topic_path,
-                                        messages=self.messages)
-                    total_time = int((time.time() - start_time) * 1000)
-                    logging.info(
-                        f"Published {len(self.messages)} request records to {self.topic_path} in {total_time} miliseconds")
-                    self.messages = []
-                except Exception as e:
-                    logging.error(
-                        f"Exception when publishing request records - {e}")
+        try:
+
+            start_time = time.time()
+            self.client.publish(topic=self.topic_path,
+                                messages=self.messages)
+            total_time = int((time.time() - start_time) * 1000)
+            logging.info(
+                f"Published {len(self.messages)} request records to {self.topic_path} in {total_time} miliseconds")
+            self.messages = []
+        except Exception as e:
+            logging.error(
+                f"Exception when publishing request records - {e}")
 
     def log_request(self,
                     request_type: str,
@@ -96,14 +130,21 @@ class PubsubAdapter:
         """This is an event handler for Locust on_request events.
            It prepares a metric proto buffer and appends it to a message queue.
         """
+
+        print("***************")
+        print("In log_request")
+        print(f"Exception: {exception}")
+        print(f"Response: {response}")
+        return
+
         if not self.test_id:
             logging.warning(
                 "Test ID NOT configured. The message will not be tracked.")
             return
 
-        if len(self.messages) > self.maximum_batch_size:
+        if len(self.messages) > self.maximum_message_queue_length:
             logging.warning(
-                f"Maximum number of request records reached - {len(self.messages)}. Removing the oldest record")
+                f"Maximum number of request records queued - {len(self.messages)}. Removing the oldest record")
             self.messages.pop()
 
         message = self._prepare_message(
@@ -160,3 +201,30 @@ class PubsubAdapter:
 
         return message
 
+
+@events.init_command_line_parser.add_listener
+def _(parser):
+    parser.add_argument("--enable_metrics_tracking", include_in_web_ui=True, default=True,
+                        help="Whether to publish metrics to Pubsub topic")
+    parser.add_argument("--enable_query_response_logging", include_in_web_ui=True, default=True,
+                        help="Whether to include request and response content in published metrics")
+    parser.add_argument("--test_id", type=str,
+                        include_in_web_ui=True, default="", help="Test ID")
+    parser.add_argument("--topic_name", type=str, env_var="TOPIC_NAME",
+                        include_in_web_ui=False, default="",  help="Pubsub topic name")
+    parser.add_argument("--project_id", type=str, env_var="PROJECT_ID",
+                        include_in_web_ui=False, default="",  help="Project ID")
+    parser.add_argument("--maximum_message_queue_length", type=int, env_var="MAXIMUM_MESSAGE_QUEUE_LENGTH",
+                        include_in_web_ui=False, default=1000, help="The maximum size of the in-memory message queue that stages messages for publishing")
+    parser.add_argument("--minimum_message_queue_length", type=int, env_var="MINIMUM_MESSAGE_QUEUE_LENGTH",
+                        include_in_web_ui=False, default=10, help="The batch of messages will be published after the length of the in-memory message queue goes over this threshold")
+
+
+def config_metrics_tracking(environment: Environment):
+    if environment.parsed_options.topic_name and environment.parsed_options.project_id:
+        PubsubAdapter(project_id=environment.parsed_options.project_id, topic_name=environment.parsed_options.topic_name,
+                      minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximimu_message_queue_length=environment.parsed_options.maximum_message_queue_length)
+
+    else:
+        logging.warning(
+            'No Pubsub topic configured. Metrics will not be tracked. To enable tracking you must set --topic_name and --project_id parameters.')

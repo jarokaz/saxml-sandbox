@@ -14,7 +14,9 @@
 
 
 from common.pubsub_adapter import PubsubAdapter 
+from common.pubsub_adapter import config_metrics_tracking
 
 __all__ = (
-    "PubsubAdapter"
+    "PubsubAdapter",
+    "config_metrics_tracking"
 )

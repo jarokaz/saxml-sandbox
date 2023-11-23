@@ -105,13 +105,13 @@ locals {
         "name": "model_method",
         "type": "STRING",
         "mode": "NULLABLE",
-        "description": "Model name"
+        "description": "Model method"
     },
     {
         "name": "num_output_tokens",
         "type": "INT64",
         "mode": "NULLABLE",
-        "description": "Model name"
+        "description": "Number of output tokens"
     },
     {
         "name": "num_input_tokens",
