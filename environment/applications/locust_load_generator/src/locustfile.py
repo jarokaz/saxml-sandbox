@@ -18,6 +18,7 @@ import random
 
 from locust import HttpUser, between, task, events
 from common import config_metrics_tracking
+from common import load_test_prompts
 
 
 class FastAPIStressUser(HttpUser):
@@ -48,36 +49,29 @@ class SaxmlUser(HttpUser):
         model_options = {}
         request = {
             "prompt": prompt,
+            "model_id": self.environment.parsed_options.model_id, 
             "model_options": model_options,
         }
-
-        self.client.post("/generate", json=request)
-   #     with self.client.post("/generate", json=request, catch_response=True) as resp:
-   #         print('***********')
-   #         print(resp)
-   #         resp_dict = resp.json()
-   #         print(resp_dict)
-   #         resp.request_meta["context"]["model_name"] = self.environment.parsed_options.model_id
-   #         resp.request_meta["context"]["model_method"] = "lm.Generate"
-   #         resp.request_meta["context"]["model_server_response_time"] = resp_dict["performance_metrics"]["response_time"]
-   #         if self.environment.parsed_options.log_request_and_response:
-   #             resp.request_meta["context"]["request"] = json.dumps(request)
-   #             resp.request_meta["context"]["completions"] = json.dumps(resp_dict["completions"])
+        with self.client.post("/generate", json=request, catch_response=True) as resp:
+            resp.request_meta["context"]["request"] = request 
 
 
 @events.init_command_line_parser.add_listener
 def _(parser):
-    parser.add_argument("--topic_name", type=str, env_var="TOPIC_NAME",
-                        include_in_web_ui=False, default="",  help="Pubsub topic name")
-    parser.add_argument("--project_id", type=str, env_var="PROJECT_ID",
-                        include_in_web_ui=False, default="",  help="Project ID")
-    parser.add_argument("--maximum_message_queue_length", type=int, env_var="MAXIMUM_MESSAGE_QUEUE_LENGTH",
-                        include_in_web_ui=False, default=1000, help="The maximum size of the in-memory message queue that stages messages for publishing")
-    parser.add_argument("--minimum_message_queue_length", type=int, env_var="MINIMUM_MESSAGE_QUEUE_LENGTH",
-                        include_in_web_ui=False, default=10, help="The batch of messages will be published after the length of the in-memory message queue goes over this threshold")
+    parser.add_argument("--model_id", type=str, env_var="MODEL_ID",
+                        include_in_web_ui=True, default="/sax/test/llama7bfp16tpuv5e",  help="Model ID")
+    parser.add_argument("--test_data_uri", type=str, env_var="TEST_DATA_URI",
+                        include_in_web_ui=True, default="gs://jk-saxml-archive/test_data/orca_prompts.jsonl", help="GCS URI to test data")
+
+@events.test_start.add_listener
+def _(environment, **kwargs):
+    global test_data
+    logging.info(f"Loading test prompts from {environment.parsed_options.test_data_uri}")
+    test_data = []
+    test_data = load_test_prompts(environment.parsed_options.test_data_uri)
 
 
 @events.init.add_listener
-def on_locust_init(environment, **kwargs):
+def _(environment, **kwargs):
     logging.info("INITIALIZING LOCUST ....")
     config_metrics_tracking(environment) 

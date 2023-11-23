@@ -131,7 +131,7 @@ def _(parser):
                         include_in_web_ui=True, default="", help="GCS URI to test data")
     parser.add_argument("--message_buffer_size", type=int, env_var="MESSAGE_BUFFER_SIZE",
                         include_in_web_ui=False, default=25, help="The size of the batch for Pubsub transactions")
-    parser.add_argument("--enable_metrics_tracking", include_in_web_ui=True, default=True,
+    parser.add_argument("--metrics_tracking", include_in_web_ui=True, choices=["enabled", "disabled"] default="enabled",
                         help="Whether to publish metrics to Pubsub topic")
-    parser.add_argument("--enable_query_response_logging", include_in_web_ui=True, default=True,
+    parser.add_argument("--query_response_logging", include_in_web_ui=True, choices=["enabled", "disabled"], default="enabled",
                         help="Whether to include request and response content in published metrics")

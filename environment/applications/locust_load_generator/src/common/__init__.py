@@ -15,8 +15,10 @@
 
 from common.pubsub_adapter import PubsubAdapter 
 from common.pubsub_adapter import config_metrics_tracking
+from common.test_data_utils import load_test_prompts
 
 __all__ = (
     "PubsubAdapter",
-    "config_metrics_tracking"
+    "config_metrics_tracking",
+    "load_test_prompts"
 )

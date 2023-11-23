@@ -49,15 +49,17 @@ def greenlet_exception_handler():
 
 
 class PubsubAdapter:
-    def __init__(self, project_id: str, topic_name: str, minimum_message_queue_lenght: int = 10, maximum_message_queue_length: int = 500, flusher_sleep_time: int = 1):
+    def __init__(self, env: Environment, project_id: str, topic_name: str, minimum_message_queue_length: int = 10, maximum_message_queue_length: int = 500, publisher_sleep_time: int = 1):
         self.topic_path = f"projects/{project_id}/topics/{topic_name}"
         self.client = PublisherClient()
         self.messages = []
-        self.minimum_message_queue_length = minimum_message_queue_lenght
+        self.minimum_message_queue_length = minimum_message_queue_length
         self.maximum_message_queue_length = maximum_message_queue_length
-        self.flusher_sleep_time = flusher_sleep_time
+        self.publisher_sleep_time = publisher_sleep_time
         self.request_handler = None
         self.test_id = None
+        self.environment = env
+        env.events.test_start.add_listener(self.on_test_start)
 
     def on_test_start(self, environment, **kwargs):
         """Registers the request handler and starts the publishing greenlet."""
@@ -70,19 +72,22 @@ class PubsubAdapter:
                     self.request_handler)
                 self.request_handler = None
 
-            if environment.parsed_options.enable_metrics_tracking:
+            if environment.parsed_options.metrics_tracking == "enabled":
                 if environment.parsed_options.test_id:
                     self.test_id = environment.parsed_options.test_id
                     logging.info("Adding request listener")
                     self.request_handler = environment.events.request.add_listener(
                         self.log_request)
                     logging.info("Spawning a publishing greenlet")
-                    gevent.spawn(self.flusher, self.flusher_sleep_time).link_exception(
+                    gevent.spawn(self.publisher, self.publisher_sleep_time).link_exception(
                         greenlet_exception_handler())
+                else:
+                    logging.warning(
+                        "Test ID not set. Metrics tracking disabled.")
             else:
-                logging.warning("Test ID not set. Metrics tracking disabled.")
+                logging.info("Metrics tracking disabled by a user")
 
-    def flusher(self, sleep_time=1):
+    def publisher(self, sleep_time=1):
         """This function is executed by a publishing greenlet
 
            It awakens every configured seconds and publishes 
@@ -96,26 +101,26 @@ class PubsubAdapter:
         logging.info("The runner has starterd.")
         while self.environment.runner.state == STATE_RUNNING:
             gevent.sleep(sleep_time)
-            if len(self.messages) >= self.minimum_message_queue_length:
-                self.flush_messages()
+            self.publish_messages()
         logging.info("The runner has stopped.")
-        self.flush_messages()
+        self.publish_messages()
         logging.info("Exiting the Pubsub publishing greenlet.")
 
-    def flush_messages(self):
-        """Writes all metrics messages in a message queue to a configurred Pubsub topic."""
-        try:
+    def publish_messages(self):
+        """Publishes all metrics messages in a message queue."""
 
-            start_time = time.time()
-            self.client.publish(topic=self.topic_path,
-                                messages=self.messages)
-            total_time = int((time.time() - start_time) * 1000)
-            logging.info(
-                f"Published {len(self.messages)} request records to {self.topic_path} in {total_time} miliseconds")
-            self.messages = []
-        except Exception as e:
-            logging.error(
-                f"Exception when publishing request records - {e}")
+        if len(self.messages) >= self.minimum_message_queue_length:
+            try:
+                start_time = time.time()
+                self.client.publish(topic=self.topic_path,
+                                    messages=self.messages)
+                total_time = int((time.time() - start_time) * 1000)
+                logging.info(
+                    f"Published {len(self.messages)} request records to {self.topic_path} in {total_time} miliseconds")
+                self.messages = []
+            except Exception as e:
+                logging.error(
+                    f"Exception when publishing request records - {e}")
 
     def log_request(self,
                     request_type: str,
@@ -135,6 +140,7 @@ class PubsubAdapter:
         print("In log_request")
         print(f"Exception: {exception}")
         print(f"Response: {response}")
+        print(f"Contenxt: {context}")
         return
 
         if not self.test_id:
@@ -204,16 +210,16 @@ class PubsubAdapter:
 
 @events.init_command_line_parser.add_listener
 def _(parser):
-    parser.add_argument("--enable_metrics_tracking", include_in_web_ui=True, default=True,
+    parser.add_argument("--metrics_tracking", include_in_web_ui=True, choices=["enabled", "disabled"], default="enabled",
                         help="Whether to publish metrics to Pubsub topic")
-    parser.add_argument("--enable_query_response_logging", include_in_web_ui=True, default=True,
+    parser.add_argument("--query_response_logging", include_in_web_ui=True, choices=["enabled", "disabled"], default="enabled",
                         help="Whether to include request and response content in published metrics")
     parser.add_argument("--test_id", type=str,
                         include_in_web_ui=True, default="", help="Test ID")
     parser.add_argument("--topic_name", type=str, env_var="TOPIC_NAME",
-                        include_in_web_ui=False, default="",  help="Pubsub topic name")
+                        include_in_web_ui=False, default="locust_pubsub_sink",  help="Pubsub topic name")
     parser.add_argument("--project_id", type=str, env_var="PROJECT_ID",
-                        include_in_web_ui=False, default="",  help="Project ID")
+                        include_in_web_ui=False, default="jk-mlops-dev",  help="Project ID")
     parser.add_argument("--maximum_message_queue_length", type=int, env_var="MAXIMUM_MESSAGE_QUEUE_LENGTH",
                         include_in_web_ui=False, default=1000, help="The maximum size of the in-memory message queue that stages messages for publishing")
     parser.add_argument("--minimum_message_queue_length", type=int, env_var="MINIMUM_MESSAGE_QUEUE_LENGTH",
@@ -222,8 +228,10 @@ def _(parser):
 
 def config_metrics_tracking(environment: Environment):
     if environment.parsed_options.topic_name and environment.parsed_options.project_id:
-        PubsubAdapter(project_id=environment.parsed_options.project_id, topic_name=environment.parsed_options.topic_name,
-                      minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximimu_message_queue_length=environment.parsed_options.maximum_message_queue_length)
+        logging.info(
+            f"Registering Pubsub publisher for topic {environment.parsed_options.topic_name}")
+        PubsubAdapter(env=environment, project_id=environment.parsed_options.project_id, topic_name=environment.parsed_options.topic_name,
+                      minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximum_message_queue_length=environment.parsed_options.maximum_message_queue_length)
 
     else:
         logging.warning(
