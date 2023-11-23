@@ -27,7 +27,7 @@ from google.pubsub_v1.types import PubsubMessage
 
 from locust.env import Environment
 from locust import events
-from locust.runners import STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP, STATE_RUNNING, MasterRunner
+from locust.runners import  STATE_RUNNING, MasterRunner
 
 from common import metrics_pb2
 
@@ -227,12 +227,13 @@ def _(parser):
 
 
 def config_metrics_tracking(environment: Environment):
-    if environment.parsed_options.topic_name and environment.parsed_options.project_id:
-        logging.info(
-            f"Registering Pubsub publisher for topic {environment.parsed_options.topic_name}")
-        PubsubAdapter(env=environment, project_id=environment.parsed_options.project_id, topic_name=environment.parsed_options.topic_name,
-                      minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximum_message_queue_length=environment.parsed_options.maximum_message_queue_length)
+    if not isinstance(environment.runner, MasterRunner):
+        if environment.parsed_options.topic_name and environment.parsed_options.project_id:
+            logging.info(
+                f"Registering Pubsub publisher for topic {environment.parsed_options.topic_name}")
+            PubsubAdapter(env=environment, project_id=environment.parsed_options.project_id, topic_name=environment.parsed_options.topic_name,
+                        minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximum_message_queue_length=environment.parsed_options.maximum_message_queue_length)
 
-    else:
-        logging.warning(
-            'No Pubsub topic configured. Metrics will not be tracked. To enable tracking you must set --topic_name and --project_id parameters.')
+        else:
+            logging.warning(
+                'No Pubsub topic configured. Metrics will not be tracked. To enable tracking you must set --topic_name and --project_id parameters.')

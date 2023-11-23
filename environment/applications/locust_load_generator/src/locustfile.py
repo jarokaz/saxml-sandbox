@@ -17,6 +17,7 @@ import logging
 import random
 
 from locust import HttpUser, between, task, events
+from locust.runners import  MasterRunner
 from common import config_metrics_tracking
 from common import load_test_prompts
 
@@ -65,10 +66,11 @@ def _(parser):
 
 @events.test_start.add_listener
 def _(environment, **kwargs):
-    global test_data
-    logging.info(f"Loading test prompts from {environment.parsed_options.test_data_uri}")
-    test_data = []
-    test_data = load_test_prompts(environment.parsed_options.test_data_uri)
+    if not isinstance(environment.runner, MasterRunner):
+        global test_data
+        logging.info(f"Loading test prompts from {environment.parsed_options.test_data_uri}")
+        test_data = []
+        test_data = load_test_prompts(environment.parsed_options.test_data_uri)
 
 
 @events.init.add_listener
