@@ -14,7 +14,7 @@
 
 
 locals {
-    default_message_schema = "syntax = \"proto3\";\n\nmessage Metrics {\n  string test_id=1;\n  string request_type = 2;\n  string request_name=3;\n  int32 response_length=4;\n  float response_time=5;\n  string start_time=6;\n  optional string model_name=7;\n  optional string model_method=8;\n  optional int32 num_output_tokens=9;\n  optional int32 num_input_tokens=10;\n  optional int32 model_server_response_time=11;\n  optional string query=12;\n  optional string completions=13;\n}"
+    default_message_schema = "syntax = \"proto3\";\n\nmessage Metrics {\n  string test_id=1;\n  string request_type = 2;\n  string request_name=3;\n  int32 response_length=4;\n  float response_time=5;\n  string start_time=6;\n  string exception=7;\n  optional string request=8;\n  optional string response=9;\n  optional string model_name=10;\n  optional string model_method=11;\n  optional string tokenizer=12;\n  optional int32 num_output_tokens=13;\n  optional int32 num_input_tokens=14;\n  optional int32 model_response_time=15;\n}"
     default_table_schema = <<EOF
 [
     {
@@ -43,13 +43,6 @@ locals {
         "type": "JSON",
         "mode": "NULLABLE",
         "description": "Message attributes"
-
-    },
-    {
-        "name": "data",
-        "type": "JSON",
-        "mode": "NULLABLE",
-        "description": "Message data"
 
     },
     {
@@ -95,6 +88,25 @@ locals {
 
     },
     {
+        "name": "exception",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Exception encounterd during request processing if any"
+
+    },
+    {
+        "name": "request",
+        "type": "JSON",
+        "mode": "NULLABLE",
+        "description": "Request body"
+    },
+    {
+        "name": "response",
+        "type": "JSON",
+        "mode": "NULLABLE",
+        "description": "Response body"
+    },
+    {
         "name": "model_name",
         "type": "STRING",
         "mode": "NULLABLE",
@@ -106,6 +118,12 @@ locals {
         "type": "STRING",
         "mode": "NULLABLE",
         "description": "Model method"
+    },
+    {
+        "name": "Tokenizer",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Tokenizer used by the model"
     },
     {
         "name": "num_output_tokens",
@@ -120,22 +138,10 @@ locals {
         "description": "Number of input tokens"
     },
     {
-        "name": "model_server_response_time",
+        "name": "model_response_time",
         "type": "INT64",
         "mode": "NULLABLE",
         "description": "Response time from a model server"
-    },
-    {
-        "name": "query",
-        "type": "JSON",
-        "mode": "NULLABLE",
-        "description": "LLM query"
-    },
-    {
-        "name": "completions",
-        "type": "JSON",
-        "mode": "NULLABLE",
-        "description": "LLM completions"
     }
 ]
 EOF

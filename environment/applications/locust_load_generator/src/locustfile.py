@@ -53,8 +53,7 @@ class SaxmlUser(HttpUser):
             "model_id": self.environment.parsed_options.model_id, 
             "model_options": model_options,
         }
-        with self.client.post("/generate", json=request, catch_response=True) as resp:
-            resp.request_meta["context"]["request"] = request 
+        self.client.post("/generate", json=request, context={"request": json.dumps(request)}) 
 
 
 @events.init_command_line_parser.add_listener

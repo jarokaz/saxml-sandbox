@@ -136,13 +136,6 @@ class PubsubAdapter:
            It prepares a metric proto buffer and appends it to a message queue.
         """
 
-        print("***************")
-        print("In log_request")
-        print(f"Exception: {exception}")
-        print(f"Response: {response}")
-        print(f"Contenxt: {context}")
-        return
-
         if not self.test_id:
             logging.warning(
                 "Test ID NOT configured. The message will not be tracked.")
@@ -154,17 +147,18 @@ class PubsubAdapter:
             self.messages.pop()
 
         message = self._prepare_message(
-            test_id=self.test_id,
-            request_type=request_type,
-            name=name,
-            response_time=response_time,
-            response_length=response_length,
-            response=response,
-            context=context,
-            exception=exception,
-            start_time=start_time)
+                test_id=self.test_id,
+                request_type=request_type,
+                name=name,
+                response_time=response_time,
+                response_length=response_length,
+                response=response,
+                context=context,
+                exception=exception,
+                start_time=start_time)
 
         self.messages.append(message)
+
 
     def _prepare_message(self,
                          test_id: str,
@@ -230,7 +224,7 @@ def config_metrics_tracking(environment: Environment):
     if not isinstance(environment.runner, MasterRunner):
         if environment.parsed_options.topic_name and environment.parsed_options.project_id:
             logging.info(
-                f"Registering Pubsub publisher for topic {environment.parsed_options.topic_name}")
+                f"Configuring a Pubsub publisher for topic {environment.parsed_options.topic_name}")
             PubsubAdapter(env=environment, project_id=environment.parsed_options.project_id, topic_name=environment.parsed_options.topic_name,
                         minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximum_message_queue_length=environment.parsed_options.maximum_message_queue_length)
 

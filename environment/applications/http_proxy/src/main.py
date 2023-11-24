@@ -103,7 +103,7 @@ def lm_generate(query: Query):
             }
         }
         
-        if random.randint(0, 10) > 8:
+        if random.randint(0, 10) > 3:
             raise RuntimeError("Let's trigger random error")
 
     except Exception as e:
