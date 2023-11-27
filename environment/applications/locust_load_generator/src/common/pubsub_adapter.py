@@ -171,7 +171,7 @@ class PubsubAdapter:
                          exception: Exception,
                          start_time: datetime):
         """Prepare a metrics protobuf."""
-
+       
         metrics = metrics_pb2.Metrics()
         metrics.test_id = test_id
         metrics.request_type = request_type
@@ -180,22 +180,14 @@ class PubsubAdapter:
         metrics.response_length = response_length
         metrics.start_time = time.strftime(
             "%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
-        if context.get("num_output_tokens"):
-            metrics.num_output_tokens = context["num_output_tokens"]
-        if context.get("num_input_tokens"):
-            metrics.num_input_tokens = context["num_input_tokens"]
-        if context.get("model_name"):
-            metrics.model_name = context["model_name"]
-        if context.get("model_method"):
-            metrics.model_method = context["model_method"]
-        if context.get("model_server_response_time"):
-            metrics.model_server_response_time = context["model_server_response_time"]
-        if context.get("prompt"):
-            metrics.prompt = context["prompt"]
-        if context.get("prompt_parameters"):
-            metrics.prompt_parameters = context["prompt_parameters"]
-        if context.get("completions"):
-            metrics.completion = context["completions"]
+        if exception:
+            metrics.exception = str(exception)
+
+        if context and context.get("request"):
+            if self.environment.parsed_options.request_response_logging == "enabled":
+                metrics.request = context["request"]
+                metrics.response = json.dumps(response.json())
+    
         metrics = json.dumps(MessageToDict(metrics)).encode("utf-8")
         message = PubsubMessage(data=metrics)
 
@@ -206,7 +198,7 @@ class PubsubAdapter:
 def _(parser):
     parser.add_argument("--metrics_tracking", include_in_web_ui=True, choices=["enabled", "disabled"], default="enabled",
                         help="Whether to publish metrics to Pubsub topic")
-    parser.add_argument("--query_response_logging", include_in_web_ui=True, choices=["enabled", "disabled"], default="enabled",
+    parser.add_argument("--request_response_logging", include_in_web_ui=True, choices=["enabled", "disabled"], default="enabled",
                         help="Whether to include request and response content in published metrics")
     parser.add_argument("--test_id", type=str,
                         include_in_web_ui=True, default="", help="Test ID")
