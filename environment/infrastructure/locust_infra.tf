@@ -120,7 +120,7 @@ locals {
         "description": "Model method"
     },
     {
-        "name": "Tokenizer",
+        "name": "tokenizer",
         "type": "STRING",
         "mode": "NULLABLE",
         "description": "Tokenizer used by the model"

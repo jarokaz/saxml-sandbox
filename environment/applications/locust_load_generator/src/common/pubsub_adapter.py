@@ -19,20 +19,19 @@ import time
 from datetime import datetime
 import gevent
 import grpc.experimental.gevent as grpc_gevent
+# patch grpc so that it uses gevent instead of asyncio
+grpc_gevent.init_gevent()
+
+from locust.env import Environment
+from locust import events
+from locust.runners import  STATE_RUNNING, MasterRunner
 
 from google.cloud import pubsub_v1
 from google.protobuf.json_format import MessageToDict
 from google.pubsub_v1.services.publisher.client import PublisherClient
 from google.pubsub_v1.types import PubsubMessage
 
-from locust.env import Environment
-from locust import events
-from locust.runners import  STATE_RUNNING, MasterRunner
-
 from common import metrics_pb2
-
-# patch grpc so that it uses gevent instead of asyncio
-grpc_gevent.init_gevent()
 
 
 def greenlet_exception_handler():
@@ -172,24 +171,29 @@ class PubsubAdapter:
                          start_time: datetime):
         """Prepare a metrics protobuf."""
        
-        metrics = metrics_pb2.Metrics()
-        metrics.test_id = test_id
-        metrics.request_type = request_type
-        metrics.request_name = name
-        metrics.response_time = response_time
-        metrics.response_length = response_length
-        metrics.start_time = time.strftime(
-            "%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
+        metrics = {
+            "test_id": test_id,
+            "request_type": request_type,
+            "request_name": name,
+            "response_time": response_time,
+            "response_length": response_length,
+            "start_time": time.strftime(
+                "%Y-%m-%d %H:%M:%S",  time.localtime(start_time)) 
+        }
         if exception:
-            metrics.exception = str(exception)
-
-        if context and context.get("request"):
-            if self.environment.parsed_options.request_response_logging == "enabled":
-                metrics.request = context["request"]
-                metrics.response = json.dumps(response.json())
+            metrics["exception"] = str(exception)
+        if self.environment.parsed_options.request_response_logging == "enabled":
+            response_dict = response.json()
+            metrics["response"] = json.dumps(response_dict)
     
-        metrics = json.dumps(MessageToDict(metrics)).encode("utf-8")
-        message = PubsubMessage(data=metrics)
+        if context:
+            for key in ["model_name", "model_method", "request", "num_input_tokens", "num_output_tokens", "tokenizer"]:
+                value = context.get(key)
+                if value:
+                    metrics[key] = value
+        
+        metrics_proto = metrics_pb2.Metrics(**metrics)
+        message = PubsubMessage(data=json.dumps(MessageToDict(metrics_proto)).encode("utf-8"))
 
         return message
 

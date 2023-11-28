@@ -110,5 +110,6 @@ def lm_generate(query: Query):
         logging.error("Exception when invoking Saxml client: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Exception in Saxml client: {e}")
-
+     
+    # Add comment
     return response
