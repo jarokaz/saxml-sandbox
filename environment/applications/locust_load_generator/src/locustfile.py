@@ -51,7 +51,7 @@ class FastAPIStressUser(HttpUser):
 
 class SaxmlUser(HttpUser):
     weight = 1
-    wait_time = between(3, 3)
+    wait_time = between(0.9, 1.1)
 
     @task
     def lm_generate(self):
