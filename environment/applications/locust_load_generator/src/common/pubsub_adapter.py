@@ -187,7 +187,7 @@ class PubsubAdapter:
             metrics["response"] = json.dumps(response_dict)
     
         if context:
-            for key in ["model_name", "model_method", "request", "num_input_tokens", "num_output_tokens", "tokenizer"]:
+            for key in ["model_name", "model_method", "request", "num_input_tokens", "num_output_tokens", "tokenizer", "model_response_time"]:
                 value = context.get(key)
                 if value:
                     metrics[key] = value
