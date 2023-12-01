@@ -68,7 +68,7 @@ module "vpc" {
                 ip_cidr_range = var.services_ip_range
             },
             {
-                range_name    = var.services_ip_range_name 
+                range_name    = var.pods_ip_range_name 
                 ip_cidr_range = var.pods_ip_range
             }
         ]
