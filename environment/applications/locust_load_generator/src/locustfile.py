@@ -74,15 +74,14 @@ class SaxmlUser(HttpUser):
             resp.request_meta["context"]["model_name"] = self.environment.parsed_options.model_id
             resp.request_meta["context"]["model_method"] = "Generate"
             if resp.status_code == 200:
+                resp_dict = resp.json()
+                resp.request_meta["context"]["model_response_time"] = resp_dict["performance_metrics"]["response_time"]
                 if tokenizer:
-                    resp_dict = resp.json()
-                    resp.request_meta["context"]["model_response_time"] = resp_dict["performance_metrics"]["response_time"]
                     resp.request_meta["context"]["tokenizer"] = self.environment.parsed_options.tokenizer 
                     resp.request_meta["context"]["num_input_tokens"] = len(tokenizer.encode(prompt))
                     resp.request_meta["context"]["num_output_tokens"] = sum([
                         len(tokenizer.encode(completion[0])) for completion in resp_dict["completions"]
                     ])
-
 
 
 @events.init_command_line_parser.add_listener

@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "google_service_account" "gke_service_account" {
-    account_id = var.gke_sa_name
-    display_name = "GKE node pool service account" 
+
+locals {
+  gke_service_account_email = var.gke_sa_email == "" ? module.service_account[0].email : var.gke_sa_email
+  project_roles = [for role in var.gke_sa_roles : "${var.project_id}=>roles/${role}"] 
 }
 
-resource "google_project_iam_member" "gke_sa_role_bindings" {
-  for_each = toset(var.gke_sa_roles)
-  project  = data.google_project.project.project_id
-  member   = "serviceAccount:${google_service_account.gke_service_account.email}"
-  role     = "roles/${each.value}"
+module "service_account" {
+  count         = var.gke_sa_email == "" ? 1 : 0
+  source        = "terraform-google-modules/service-accounts/google"
+  project_id    = var.project_id
+  names         = [var.gke_sa_name]
+  display_name  = "GKE service account"
+  description   = "Service account for GKE node pools"
+  project_roles = local.project_roles 
 }

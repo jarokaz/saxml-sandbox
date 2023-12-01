@@ -14,7 +14,19 @@ WIP
 
 ## Environment setup
 
-### Provision infrastructure
+### Prerequisites
+#### Create set project
+#### Terraform service account
+#### Terraform state bucket
+#### Services
+
+### Provision environment 
+##### Provision infrastructure
+###### Clone repo
+###### Update terraform.tfvars
+###### Run Cloud Build 
+#### Deploy Saxml and http proxy
+#### Deploy Locust
 
 WIP
 

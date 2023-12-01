@@ -18,6 +18,12 @@ variable "project_id" {
     type        = string
 }
 
+variable "network_project_id" {
+    description = "The project ID of the VPC"
+    type        = string
+    default     = ""
+}
+
 variable "region" {
     description = "The region for the environment resources"
     type        = string
@@ -136,10 +142,15 @@ variable "saxml_namespace" {
     default = "saxml"
 }
 
-
+####  Networking
 variable "network_name" {
     description = "The network name"
     type        = string
+}
+
+variable "vpc_routing_mode" {
+    description  = "The network routing mode"
+    default = "REGIONAL"
 }
 
 variable "subnet_name" {
@@ -154,12 +165,23 @@ variable "subnet_ip_range" {
 
 variable "pods_ip_range" {
     description = "The secondary IP range for pods"
-    default     = "192.168.64.0/20"
+    type        = string
+    default     =  "192.168.64.0/20" 
+}
+
+variable "pods_ip_range_name" {
+    description = "The name  of the secondary IP range for pods"
+    type        = string
 }
 
 variable "services_ip_range" {
     description = "The secondary IP range for services"
     default     = "192.168.80.0/20"
+}
+
+variable "services_ip_range_name" {
+    description = "The name of the secondary IP range for services"
+    type        = string 
 }
 
 variable "max_pods_per_node" {
@@ -170,6 +192,12 @@ variable "max_pods_per_node" {
 variable "gke_sa_name" {
     description = "The service account name for GKE node pools"
     default = "gke-saxml-sa"
+}
+
+variable "gke_sa_email" {
+    description = "The email of the service account for GKE node pools"
+    type        = string
+    default     = ""
 }
 
 variable "gke_sa_roles" {

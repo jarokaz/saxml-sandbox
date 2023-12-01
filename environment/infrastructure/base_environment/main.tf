@@ -20,7 +20,8 @@ terraform {
     google-beta = ">=4.84"
   }
 
-  backend "gcs" {}
+  backend "gcs" {
+  }
 }
 
 provider "google" {

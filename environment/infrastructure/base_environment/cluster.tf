@@ -30,10 +30,14 @@ module "gke" {
   kubernetes_version         = var.gke_version
   region                     = var.region
   zones                      = [var.zone]
-  network                    = google_compute_network.cluster_network.name
-  subnetwork                 = google_compute_subnetwork.cluster_subnetwork.name
-  ip_range_pods              = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.1.range_name
-  ip_range_services          = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.0.range_name
+  #network                    = google_compute_network.cluster_network.name
+  network                    = local.network_name
+  #subnetwork                 = google_compute_subnetwork.cluster_subnetwork.name
+  subnetwork                 = local.subnet_name
+  #ip_range_pods              = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.1.range_name
+  ip_range_pods              = local.pods_ip_range_name
+  #ip_range_services          = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.0.range_name
+  ip_range_services          = local.services_ip_range_name 
   default_max_pods_per_node  = var.max_pods_per_node
   remove_default_node_pool   = true
   initial_node_count         = 1
@@ -42,7 +46,7 @@ module "gke" {
   horizontal_pod_autoscaling = true
   filestore_csi_driver       = false
   create_service_account     = false 
-  service_account            = google_service_account.gke_service_account.email
+  service_account            = local.gke_service_account_email
   grant_registry_access      = true  
   gcs_fuse_csi_driver        = true
   identity_namespace         = "${data.google_project.project.project_id}.svc.id.goog" 
@@ -141,20 +145,20 @@ module "gke" {
 }
 
 
-resource "kubernetes_namespace" "saxml_namespace" {
-  metadata {
-    name = var.saxml_namespace
-  }
-}
-
-
-module "workload_identity" {
-  source       = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  project_id   = data.google_project.project.project_id
-  name         = var.saxml_sa_name 
-  namespace    = kubernetes_namespace.saxml_namespace.metadata[0].name 
-  roles        = var.saxml_sa_roles
-}
+#resource "kubernetes_namespace" "saxml_namespace" {
+#  metadata {
+#    name = var.saxml_namespace
+#  }
+#}
+#
+#
+#module "workload_identity" {
+#  source       = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+#  project_id   = data.google_project.project.project_id
+#  name         = var.saxml_sa_name 
+#  namespace    = kubernetes_namespace.saxml_namespace.metadata[0].name 
+#  roles        = var.saxml_sa_roles
+#}
 
 
 #module "asm" {
