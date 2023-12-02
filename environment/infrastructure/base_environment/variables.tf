@@ -14,116 +14,116 @@
 
 
 variable "project_id" {
-    description = "The GCP project ID"
-    type        = string
+  description = "The GCP project ID"
+  type        = string
 }
 
 variable "network_project_id" {
-    description = "The project ID of the VPC"
-    type        = string
-    default     = ""
+  description = "The project ID of the VPC"
+  type        = string
+  default     = ""
 }
 
 variable "region" {
-    description = "The region for the environment resources"
-    type        = string
+  description = "The region for the environment resources"
+  type        = string
 }
 
 variable "zone" {
-    description = "The zone for a Vertex Notebook instance"
-    type        = string
+  description = "The zone for a Vertex Notebook instance"
+  type        = string
 }
 
 
 variable "repository_bucket_name" {
-    description = "The GCS bucket name to be used as model repository"
-    type        = string
+  description = "The GCS bucket name to be used as model repository"
+  type        = string
 }
 
 variable "saxml_admin_bucket_name" {
-    description = "The GCS bucket name to be used as Saxml admin bucket"
-    type        = string
+  description = "The GCS bucket name to be used as Saxml admin bucket"
+  type        = string
 }
 
 variable "force_destroy" {
-    description = "Force destroy flag for the GCS buckets"
-    default = true 
+  description = "Force destroy flag for the GCS buckets"
+  default     = true
 }
 
 variable "cluster_name" {
-    description = "The name of the GKE cluster"
-    type        = string
+  description = "The name of the GKE cluster"
+  type        = string
 }
 
 variable "cluster_description" {
-    description = "The cluster's description"
-    default = "GKE cluster to host Saxml cell"
+  description = "The cluster's description"
+  default     = "GKE cluster to host Saxml cell"
 }
 
 
 variable "cpu_pool_node_count" {
-    description = "The number of nodes in the default node pool"
-    default     = 3
+  description = "The number of nodes in the default node pool"
+  default     = 3
 }
 
 variable "cpu_pool_machine_type" {
-    description = "The machine type for the CPU node pool"
-    default = "n1-standard-8"
+  description = "The machine type for the CPU node pool"
+  default     = "n1-standard-8"
 }
 
 variable "cpu_pool_disk_size" {
-    description = "Disk size for nodes in CPU node pool"
-    default = 200
+  description = "Disk size for nodes in CPU node pool"
+  default     = 200
 }
 
 variable "cpu_pool_disk_type" {
-    description = "Disk typ on for nodes in CPU node pool"
-    default = "pd-standard"
+  description = "Disk typ on for nodes in CPU node pool"
+  default     = "pd-standard"
 }
 
 variable "saxml_admin_pool_node_count" {
-    description = "The number of nodes in the Saxml admin node pool"
-    default     = 3
+  description = "The number of nodes in the Saxml admin node pool"
+  default     = 3
 }
 
 variable "saxml_admin_pool_machine_type" {
-    description = "The machine type for the Saxml admin node pool"
-    default = "n1-standard-8"
+  description = "The machine type for the Saxml admin node pool"
+  default     = "n1-standard-8"
 }
 
 variable "saxml_admin_pool_disk_size" {
-    description = "Disk size for nodes in the Saxml admin node pool"
-    default = 200
+  description = "Disk size for nodes in the Saxml admin node pool"
+  default     = 200
 }
 
 variable "saxml_admin_pool_disk_type" {
-    description = "Disk typ on for nodes in the Saxml admin node pool"
-    default = "pd-standard"
+  description = "Disk typ on for nodes in the Saxml admin node pool"
+  default     = "pd-standard"
 }
 
 variable "saxml_converter_pool_node_count" {
-    description = "The number of nodes in the Saxml converter node pool"
-    default     = 3
+  description = "The number of nodes in the Saxml converter node pool"
+  default     = 3
 }
 
 variable "saxml_converter_pool_machine_type" {
-    description = "The machine type for the Saxml converter node pool"
-    default = "n2-highmem-32"
+  description = "The machine type for the Saxml converter node pool"
+  default     = "n2-highmem-32"
 }
 
 variable "saxml_converter_pool_disk_size" {
-    description = "Disk size for nodes in the Saxml converter node pool"
-    default = 200
+  description = "Disk size for nodes in the Saxml converter node pool"
+  default     = 200
 }
 
 variable "saxml_converter_pool_disk_type" {
-    description = "Disk typ on for nodes in the Saxml converter node pool"
-    default = "pd-standard"
+  description = "Disk typ on for nodes in the Saxml converter node pool"
+  default     = "pd-standard"
 }
 
 variable "saxml_sa_name" {
-    description = "The service account name for Saxml workload identity."
-    default = "saxml-sa"
+  description = "The service account name for Saxml workload identity."
+  default     = "saxml-sa"
 }
 
 variable "saxml_sa_roles" {
@@ -133,29 +133,47 @@ variable "saxml_sa_roles" {
     "roles/storage.admin",
     "roles/logging.logWriter",
     "roles/pubsub.admin"
-    ] 
+  ]
 }
 
+variable "gke_sa_create" {
+  description = "The flag indicating whether to create a GKE service account or use exsiting one"
+  type        = bool
+  default     = true
+}
+
+variable "gke_sa_name" {
+  description = "The service account name for GKE node pools"
+  default     = "gke-saxml-sa"
+}
+
+variable "gke_sa_roles" {
+  description = "The roles to assign to the GKE service account"
+  default = [
+    "storage.objectAdmin",
+    "logging.logWriter",
+  ]
+}
 
 variable "saxml_namespace" {
-    description = "The K8s namespace for the Saxml deployment."
-    default = "saxml"
+  description = "The K8s namespace for the Saxml deployment."
+  default     = "saxml"
 }
 
 ####  Networking
 variable "network_name" {
-    description = "The network name"
-    type        = string
+  description = "The network name"
+  type        = string
 }
 
 variable "vpc_routing_mode" {
-    description  = "The network routing mode"
-    default = "REGIONAL"
+  description = "The network routing mode"
+  default     = "REGIONAL"
 }
 
 variable "subnet_name" {
-    description = "The subnet name"
-    type        = string
+  description = "The subnet name"
+  type        = string
 }
 
 variable "subnet_ip_range" {
@@ -164,126 +182,127 @@ variable "subnet_ip_range" {
 }
 
 variable "pods_ip_range" {
-    description = "The secondary IP range for pods"
-    type        = string
-    default     =  "192.168.64.0/20" 
+  description = "The secondary IP range for pods"
+  type        = string
+  default     = "192.168.64.0/20"
 }
 
 variable "pods_ip_range_name" {
-    description = "The name  of the secondary IP range for pods"
-    type        = string
+  description = "The name  of the secondary IP range for pods"
+  type        = string
 }
 
 variable "services_ip_range" {
-    description = "The secondary IP range for services"
-    default     = "192.168.80.0/20"
+  description = "The secondary IP range for services"
+  default     = "192.168.80.0/20"
 }
 
 variable "services_ip_range_name" {
-    description = "The name of the secondary IP range for services"
-    type        = string 
+  description = "The name of the secondary IP range for services"
+  type        = string
 }
 
 variable "max_pods_per_node" {
-    description = "The maximum number of pods to schedule per node"
-    default     = 110 
+  description = "The maximum number of pods to schedule per node"
+  default     = 110
 }
 
-variable "gke_sa_name" {
-    description = "The service account name for GKE node pools"
-    default = "gke-saxml-sa"
-}
 
-variable "gke_sa_email" {
-    description = "The email of the service account for GKE node pools"
-    type        = string
-    default     = ""
-}
-
-variable "gke_sa_roles" {
-  description = "The roles to assign to the GKE service account"
-  default = [
-    "storage.objectAdmin",
-    "logging.logWriter",
-    ] 
-}
 
 variable "gke_release_channel" {
-    description = "GKE release channel"
-    default = "RAPID"
+  description = "GKE release channel"
+  default     = "RAPID"
 }
 
 variable "gke_version" {
-    description = "GKE version"
-    default      = "latest"
+  description = "GKE version"
+  default     = "latest"
 }
 
 variable "asm_release_channel" {
-    description = "GKE release channel"
-    default = "regular"
+  description = "GKE release channel"
+  default     = "regular"
 }
 
 variable "tpu_machine_type" {
-    description = "TPU machine type"
-    default = "ct4p-hightpu-4t"
+  description = "TPU machine type"
+  default     = "ct4p-hightpu-4t"
 }
 
 variable "tpu_type" {
-    description = "TPU type"
-    default = "v4-8"
+  description = "TPU type"
+  default     = "v4-8"
 }
 
 variable "tpu_node_pool_name_prefix" {
-    description = "TPU node pools name prefix"
-    default = "tpu-node-pool" 
+  description = "TPU node pools name prefix"
+  default     = "tpu-node-pool"
 }
 
 variable "num_tpu_pools" {
-    description = "Number of TPU slices to create"
-    default = 1 
+  description = "Number of TPU node pools."
+  default     = 1
 }
 
 variable "enable_tpu_autoscaling" {
-    description = "Enable TPU autoscaling"
-    default = false 
+  description = "Enable TPU autoscaling"
+  default     = false
+}
+
+variable "tpu_total_min_nodes" {
+  description = "Total min nodes for autoscaling single-host TPU node pool"
+  type        = number
+  default     = 1
+}
+
+variable "tpu_total_max_nodes" {
+  description = "Total max nodes for autoscaling single-host TPU node pool"
+  type        = number
+  default     = 1
+}
+
+variable "tpu_num_nodes" {
+  description = "Num of nodes in non autoscaling single-host TPU node pool"
+  type        = number
+  default     = 1
 }
 
 variable "cluster_deletion_protection" {
-    description = "Whether or not to allow Terraform to destroy the cluster."
-    default = false 
+  description = "Whether or not to allow Terraform to destroy the cluster."
+  default     = false
 }
 
 variable "locust_pubsub_sink" {
-    description = "The name of the PubSub topic for Locust integration."
-    default = "locust_pubsub_sink"
+  description = "The name of the PubSub topic for Locust integration."
+  default     = "locust_pubsub_sink"
 }
 
 variable "locust_pubsub_bq_subscription" {
-    description = "The name of the PubSub BQ subscription for Locust integration."
-    default = "locust_pubsub_bq_sub"
+  description = "The name of the PubSub BQ subscription for Locust integration."
+  default     = "locust_pubsub_bq_sub"
 }
 
 variable "locust_bq_dataset_id" {
-    description = "The name of the BigQuery dataset to manage Locust metrics"
-    default = "locust_metrics_dataset"
+  description = "The name of the BigQuery dataset to manage Locust metrics"
+  default     = "locust_metrics_dataset"
 }
 
 variable "locust_bq_dataset_location" {
-    description = "The location of the BigQuery dataset to manage Locust metrics"
-    default = "US"
+  description = "The location of the BigQuery dataset to manage Locust metrics"
+  default     = "US"
 }
 
 variable "locust_bq_table" {
-    description = "The name of the BQ table to manage Locust metrics"
-    default = "locust_metrics"
+  description = "The name of the BQ table to manage Locust metrics"
+  default     = "locust_metrics"
 }
 
 variable "message_schema" {
-    description = "PubSub message schema for locust"
-    default = ""
+  description = "PubSub message schema for locust"
+  default     = ""
 }
 
 variable "table_schema" {
-    description = "BigQuery table schema for locust"
-    default = ""
+  description = "BigQuery table schema for locust"
+  default     = ""
 }

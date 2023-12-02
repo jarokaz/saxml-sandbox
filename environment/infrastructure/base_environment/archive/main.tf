@@ -13,6 +13,25 @@
 # limitations under the License.
 
 
+terraform {
+  required_version = ">= 1.6.1"
+  required_providers {
+    google = ">= 4.84"
+    google-beta = ">=4.84"
+  }
+
+  backend "gcs" {
+  }
+}
+
+provider "google" {
+    project = var.project_id 
+}
+
+provider "google-beta" {
+  project = var.project_id
+}
+
 data "google_project" "project" {
-  project_id = var.project_id
+    project_id = var.project_id    
 }

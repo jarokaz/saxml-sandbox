@@ -293,3 +293,12 @@ sed -z -e 's/"/\\"/g' -e 's/\n/\\n/g' ../applications/locust_load_generator/src/
 ```
 terraform init -backend-config=backend.conf
 ```
+
+```
+terraform apply -var-file environment.example.tfvars
+```
+
+
+```
+terraform destroy -var-file environment.example.tfvars
+```

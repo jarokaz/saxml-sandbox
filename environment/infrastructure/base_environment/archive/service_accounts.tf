@@ -13,6 +13,17 @@
 # limitations under the License.
 
 
-data "google_project" "project" {
-  project_id = var.project_id
+locals {
+  gke_service_account_email = var.gke_sa_email == "" ? module.service_account[0].email : var.gke_sa_email
+  project_roles = [for role in var.gke_sa_roles : "${var.project_id}=>roles/${role}"] 
+}
+
+module "service_account" {
+  count         = var.gke_sa_email == "" ? 1 : 0
+  source        = "terraform-google-modules/service-accounts/google"
+  project_id    = var.project_id
+  names         = [var.gke_sa_name]
+  display_name  = "GKE service account"
+  description   = "Service account for GKE node pools"
+  project_roles = local.project_roles 
 }

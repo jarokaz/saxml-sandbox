@@ -13,6 +13,19 @@
 # limitations under the License.
 
 
-data "google_project" "project" {
-  project_id = var.project_id
+terraform {
+  backend "gcs" {
+    bucket                      = "jk-automation-bucket"
+    impersonate_service_account = "jk-automation-sa@jk-mlops-dev.iam.gserviceaccount.com"
+    # remove the newline between quotes and set the prefix to the folder for Terraform state
+    prefix = "tf_state/env_bootstrap"
+  }
 }
+provider "google" {
+  impersonate_service_account = "jk-automation-sa@jk-mlops-dev.iam.gserviceaccount.com"
+}
+provider "google-beta" {
+  impersonate_service_account = "jk-automation-sa@jk-mlops-dev.iam.gserviceaccount.com"
+}
+
+# end provider.tf for tf_automation

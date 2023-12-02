@@ -13,6 +13,21 @@
 # limitations under the License.
 
 
-data "google_project" "project" {
-  project_id = var.project_id
+variable "automation_bucket" {
+  description = "The parameters of the bucket to be used by automation tools including Terraform backend"
+  type = object({
+    name     = string
+    location = string
+  })
 }
+
+variable "project_id" {
+  description = "The GCP project ID"
+  type        = string
+}
+
+variable "automation_sa_name" {
+  description = "The name of the automation service account"
+  type        = string
+}
+

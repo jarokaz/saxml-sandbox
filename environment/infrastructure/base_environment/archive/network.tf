@@ -58,6 +58,7 @@ module "vpc" {
             subnet_name           = var.subnet_name 
             subnet_ip             = var.subnet_ip_range 
             subnet_region         = var.region 
+            subnet_private_access = true
         },
     ]
 
