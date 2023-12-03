@@ -13,32 +13,33 @@
 # limitations under the License.
 
 
-#locals {
-#  gke_service_account_email = var.gke_sa_email == "" ? module.service_account[0].email : var.gke_sa_email
-#  project_roles             = [for role in var.gke_sa_roles : "${var.project_id}=>roles/${role}"]
-#}
+locals {
+  node_pool_sa_email = (
+    var.create_service_accounts
+    ? try(module.node_pool_service_account.0, null)
+    : try(data.google_service_account.service_account.0, null)
+  )
+  
+  create_node_pool_sa var.node_pool_sa
+
+  project_roles = [for role in var.node_pools_sa_roles : "roles/${role}"]
+}
 
 
-module "gke_service_account" {
-  source                 = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v28.0.0&depth=1"
-  project_id             = data.google_project.project.project_id
-  name                   = var.gke_sa_name
-  service_account_create = var.gke_sa_create
-  display_name           = "GKE node pool service account."
-  # allow SA used by CI/CD workflow to impersonate this SA
-  #iam = {
-  #  "roles/iam.serviceAccountTokenCreator" = compact([
-  #    try(module.automation-tf-cicd-sa["bootstrap"].iam_email, null)
-  #  ])
-  #}
-  #iam_storage_roles = {
-  #  (module.automation_gcs.name) = ["roles/storage.admin"]
-  #}
+module "node_pool_service_account" {
+  source       = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v28.0.0&depth=1"
+  count        = var.create_service_accounts ? 1 : 0
+  project_id   = var.project_id
+  name         = var.node_pools_sa_name
+  display_name = "GKE node pool service account."
 
-  #iam_project_roles = {
-  #  "${module.project_config.project_id}" = [
-  #    # To Do. Restrict the roles
-  #    "roles/editor"
-  #  ]
-  #}
+  iam_project_roles = {
+    "${var.project_id}" = local.project_roles
+  }
+}
+
+data "google_service_account" "service_account" {
+  count      = var.create_service_accounts ? 0 : 1
+  project    = var.project_id
+  account_id = var.node_pools_sa_name
 }

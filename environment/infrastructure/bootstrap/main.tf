@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 locals {
   gcs_storage_class = (
     length(split("-", var.automation_bucket.location)) < 2
@@ -52,6 +51,7 @@ module "automation_gcs" {
   location      = var.automation_bucket.location
   storage_class = local.gcs_storage_class
   versioning    = true
+  force_destroy = var.deletion_protection ? false : true
 }
 
 
@@ -73,7 +73,8 @@ module "automation_sa" {
   iam_project_roles = {
     "${module.project_config.project_id}" = [
       # To Do. Restrict the roles
-      "roles/editor"
+      "roles/iam.securityAdmin",
+      "roles/iam.serviceAccountAdmin"
     ]
   }
 }

@@ -15,16 +15,20 @@
 
 locals {
   _tpl_providers = "${path.module}/templates/providers.tf.tpl"
+  _tpl_backend   = "${path.module}/templates/backend.tf.tpl"
 
   providers = {
-    "env" = templatefile(local._tpl_providers, {
+    "providers" = templatefile(local._tpl_providers, {
+      sa = module.automation_sa.email
+    })
+
+    "backend" = templatefile(local._tpl_backend, {
       backend_extra = join("\n", [
         "# remove the newline between quotes and set the prefix to the folder for Terraform state",
         "prefix = \"",
         "\""
       ])
       bucket = module.automation_gcs.name
-      name   = "tf_automation"
       sa     = module.automation_sa.email
     })
   }
@@ -43,6 +47,6 @@ output "automation_sa" {
 resource "google_storage_bucket_object" "providers" {
   for_each = local.providers
   bucket   = module.automation_gcs.name
-  name     = "providers/${each.key}-providers.tf"
+  name     = "providers/${each.key}.tf"
   content  = each.value
 }
