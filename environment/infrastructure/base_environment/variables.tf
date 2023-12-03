@@ -28,36 +28,37 @@ variable "deletion_protection" {
 variable "node_pool_sa" {
   description = "The config for a node pool service account. If email is set the existing service account is used. If name is a new account is created. If roles are null the default roles are used."
   type = object({
-    name  = optional(string)
-    email = optional(string)
-    roles = optional(list(string))
+    name        = optional(string)
+    email       = optional(string)
+    roles       = optional(list(string))
+    description = optional(string)
   })
-  default  = {}
+  default = {
+  }
+  validation {
+    condition = 2 > sum([for c in [
+    var.node_pool_sa.email != null, var.node_pool_sa.name != null] : c ? 1 : 0])
+    error_message = "You cannot provide both email and name."
+  }
   nullable = false
 }
 
 variable "wid_sa" {
-  description = "The config for a workload idendity service account. If email is set the existing service account is used. If name is a new account is created. If roles are null the default roles are used."
+  description = "The config for a workload identity service account. If email is set the existing service account is used. If name is a new account is created. If roles are null the default roles are used."
   type = object({
-    name  = optional(string)
-    email = optional(string)
-    roles = optional(list(string))
+    name        = optional(string)
+    email       = optional(string)
+    roles       = optional(list(string))
+    description = optional(string)
   })
-  default  = {}
+  default = {
+  }
+  validation {
+    condition = 2 > sum([for c in [
+    var.wid_sa.email != null, var.wid_sa.name != null] : c ? 1 : 0])
+    error_message = "You cannot provide both email and name."
+  }
   nullable = false
-}
-
-variable "node_pools_sa_name" {
-  description = "The name of the cluster's node pools service account"
-  type        = string
-}
-
-variable "node_pools_sa_roles" {
-  description = "The roles to assign to the node pools service account"
-  default = [
-    "storage.objectAdmin",
-    "logging.logWriter",
-  ]
 }
 
 

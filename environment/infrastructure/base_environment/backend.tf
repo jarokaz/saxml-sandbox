@@ -13,6 +13,10 @@
 # limitations under the License.
 
 
-data "google_project" "project" {
-  project_id = var.project_id
+terraform {
+  backend "gcs" {
+    bucket                      = "jk-automation-bucket"
+    impersonate_service_account = "jk-automation-sa@jk-mlops-dev.iam.gserviceaccount.com"
+    prefix                      = "tf_state/saxml_env"
+  }
 }
