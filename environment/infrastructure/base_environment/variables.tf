@@ -61,6 +61,33 @@ variable "wid_sa" {
   nullable = false
 }
 
+variable "vpc_ref" {
+  description = "Network configurations of an existing VPC to use for the environment. If null a new VPC based on the provided network_config will be created"
+  type = object({
+    host_project           = string
+    network_self_link      = string
+    subnet_self_link       = string
+    pods_ip_range_name     = string
+    services_ip_range_name = string
+  })
+  default = null
+}
+
+variable "vpc_config" {
+  description = "Network configurations of a VPC to create. Must be specified if vpc_reg is null"
+  type = object({
+    network_name  = string
+    subnet_name   = string
+    subnet_region = string
+    ip_cidr_range = string
+    secondary_ip_ranges = object({
+      pods     = string
+      services = string
+    })
+  })
+  default = null
+}
+
 
 
 ########################################
