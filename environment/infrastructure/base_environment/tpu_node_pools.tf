@@ -38,6 +38,8 @@ locals {
   tpu_node_pools = { for node_pool_name, node_pool in var.tpu_node_pools :
     node_pool_name => {
       machine_type   = local.tpu_types[node_pool.tpu_type][3]
+      disk_type      = node_pool.disk_type
+      disk_size_gb   = node_pool.disk_size_gb
       tpu_topology   = local.tpu_types[node_pool.tpu_type][0]
       zones          = node_pool.zones
       multihost      = local.tpu_types[node_pool.tpu_type][5]
@@ -92,6 +94,8 @@ resource "google_container_node_pool" "tpu_node_pool" {
   node_config {
     machine_type    = each.value.machine_type
     service_account = local.node_pool_sa_email
+    disk_type       = each.value.disk_type
+    disk_size_gb    = each.value.disk_size_gb
     oauth_scopes    = each.value.oauth_scopes
     #    gvnic = {
     #      enabled = each.value.gvnic

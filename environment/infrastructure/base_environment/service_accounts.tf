@@ -20,14 +20,7 @@ locals {
     ? {
       "${local.wid_sa_name}" = {
         description = var.wid_sa.description
-        roles = (
-          var.wid_sa.roles != null && var.wid_sa.roles != []
-          ? var.wid_sa.roles
-          : [
-            "storage.objectAdmin",
-            "logging.logWriter",
-          ]
-        )
+        roles       = var.wid_sa.roles
       }
     }
     : {}
@@ -38,14 +31,7 @@ locals {
     ? {
       "${local.node_pool_sa_name}" = {
         description = var.node_pool_sa.description
-        roles = (
-          var.node_pool_sa.roles != null && var.wid_sa.roles != []
-          ? var.node_pool_sa.roles
-          : [
-            "storage.objectAdmin",
-            "logging.logWriter",
-          ]
-        )
+        roles       = var.node_pool_sa.roles
       }
     }
     : {}
@@ -67,10 +53,5 @@ module "service_accounts" {
 }
 
 
-#data "google_service_account" "service_account" {
-#  count      = var.create_service_accounts ? 0 : 1
-#  project    = var.project_id
-#  account_id = var.node_pools_sa_name
-#}
 
 

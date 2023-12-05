@@ -76,7 +76,8 @@ module "automation_sa" {
       "roles/iam.securityAdmin",
       "roles/iam.serviceAccountAdmin",
       "roles/compute.networkAdmin",
-      "roles/container.clusterAdmin",
+      #"roles/container.clusterAdmin",
+      "roles/container.admin",
       "roles/iam.serviceAccountUser"
     ]
   }
