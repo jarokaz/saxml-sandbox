@@ -16,6 +16,13 @@
 variable "project_id" {
   description = "The GCP project ID"
   type        = string
+  nullable    = false
+}
+
+variable "region" {
+  description = "The region for the environment"
+  type        = string
+  nullable    = false
 }
 
 variable "deletion_protection" {
@@ -25,20 +32,26 @@ variable "deletion_protection" {
   nullable    = false
 }
 
+variable "prefix" {
+  description = "Prefix used for resource names."
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
 variable "node_pool_sa" {
   description = "The config for a node pool service account. If email is set the existing service account is used. If name is a new account is created. If roles are null the default roles are used."
   type = object({
-    name        = optional(string)
-    email       = optional(string)
-    roles       = optional(list(string))
-    description = optional(string)
+    name        = optional(string, "gke-node-pool-sa")
+    email       = optional(string, "")
+    roles       = optional(list(string), [])
+    description = optional(string, "GKE workload identity service account")
   })
   default = {
   }
   validation {
-    condition = 2 > sum([for c in [
-    var.node_pool_sa.email != null, var.node_pool_sa.name != null] : c ? 1 : 0])
-    error_message = "You cannot provide both email and name."
+    condition     = !(var.node_pool_sa.email == "" && var.node_pool_sa.name == "")
+    error_message = "Either email or name must be set."
   }
   nullable = false
 }
@@ -46,17 +59,15 @@ variable "node_pool_sa" {
 variable "wid_sa" {
   description = "The config for a workload identity service account. If email is set the existing service account is used. If name is a new account is created. If roles are null the default roles are used."
   type = object({
-    name        = optional(string)
-    email       = optional(string)
-    roles       = optional(list(string))
-    description = optional(string)
+    name        = optional(string, "gke-wid-sa")
+    email       = optional(string, "")
+    roles       = optional(list(string), [])
+    description = optional(string, "GKE node pool service account")
   })
-  default = {
-  }
+  default = {}
   validation {
-    condition = 2 > sum([for c in [
-    var.wid_sa.email != null, var.wid_sa.name != null] : c ? 1 : 0])
-    error_message = "You cannot provide both email and name."
+    condition     = !(var.wid_sa.email == "" && var.wid_sa.name == "")
+    error_message = "Either email or name must be set."
   }
   nullable = false
 }
@@ -76,19 +87,60 @@ variable "vpc_ref" {
 variable "vpc_config" {
   description = "Network configurations of a VPC to create. Must be specified if vpc_reg is null"
   type = object({
-    network_name  = string
-    subnet_name   = string
-    subnet_region = string
-    ip_cidr_range = string
-    secondary_ip_ranges = object({
-      pods     = string
-      services = string
-    })
+    network_name           = optional(string, "gke-cluster-network")
+    subnet_name            = optional(string, "gke-cluster-subnetwork")
+    subnet_ip_cidr_range   = optional(string, "10.129.0.0/20")
+    pods_ip_cidr_range     = optional(string, "192.168.64.0/20")
+    services_ip_cidr_range = optional(string, "192.168.80.0/20")
+    routing_mode           = optional(string, "REGIONAL")
+    nat_router_name        = optional(string, "nat-router")
   })
-  default = null
+  default  = {}
+  nullable = false
 }
 
 
+variable "cluster_config" {
+  description = "Base cluster configurations"
+  type = object({
+    name                 = optional(string, "gke-ml-cluster")
+    release_channel      = optional(string, "REGULAR")
+    description          = optional(string, "GKE ML inference cluster")
+    gcs_fuse_csi_driver  = optional(bool, true)
+    workload_identity    = optional(bool, true)
+    enable_workload_logs = optional(bool, true)
+  })
+  default  = {}
+  nullable = false
+}
+
+variable "cpu_node_pools" {
+  description = "Configurations for CPU node pools"
+  type = map(object({
+    zones          = list(string)
+    min_node_count = number
+    max_node_count = number
+    machine_type   = string
+    disk_type      = optional(string, "pd-standard")
+    disk_size_gb   = optional(string, 200)
+    auto_repair    = optional(bool, true)
+    auto_upgrade   = optional(bool, true)
+    oauth_scopes   = optional(list(string), ["https://www.googleapis.com/auth/cloud-platform"])
+    taints = optional(map(object({
+      value  = string
+      effect = string
+    })))
+  }))
+  validation {
+    condition = alltrue([
+      for k, v in merge([for name, node_pool in var.cpu_node_pools : node_pool.taints]...) :
+      contains(["NO_SCHEDULE", "PREFER_NO_SCHEDULE", "NO_EXECUTE"], v.effect)
+    ])
+    error_message = "Invalid taint effect."
+  }
+  default  = null
+  nullable = true
+}
 
 ########################################
 #

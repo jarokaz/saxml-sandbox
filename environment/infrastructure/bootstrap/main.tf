@@ -74,7 +74,10 @@ module "automation_sa" {
     "${module.project_config.project_id}" = [
       # To Do. Restrict the roles
       "roles/iam.securityAdmin",
-      "roles/iam.serviceAccountAdmin"
+      "roles/iam.serviceAccountAdmin",
+      "roles/compute.networkAdmin",
+      "roles/container.clusterAdmin",
+      "roles/iam.serviceAccountUser"
     ]
   }
 }

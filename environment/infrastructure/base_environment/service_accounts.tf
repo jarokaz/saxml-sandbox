@@ -14,29 +14,14 @@
 
 
 locals {
-  node_pool_sa_email = (
-    var.node_pool_sa.email != null
-    ? var.node_pool_sa.email
-    : var.node_pool_sa.name != null
-    ? module.service_accounts[var.node_pool_sa.name].email
-    : null
-  )
-
-  wid_sa_email = (
-    var.wid_sa.email != null
-    ? var.wid_sa.email
-    : var.wid_sa.name != null
-    ? module.service_accounts[var.wid_sa.name].email
-    : null
-  )
 
   wid_sa_config = (
-    var.wid_sa.name != null
+    !(var.wid_sa.email != "")
     ? {
-      "${var.wid_sa.name}" = {
+      "${local.wid_sa_name}" = {
         description = var.wid_sa.description
         roles = (
-          var.wid_sa.roles != null
+          var.wid_sa.roles != null && var.wid_sa.roles != []
           ? var.wid_sa.roles
           : [
             "storage.objectAdmin",
@@ -49,12 +34,12 @@ locals {
   )
 
   node_pool_sa_config = (
-    var.node_pool_sa.name != null
+    !(var.node_pool_sa.email != "")
     ? {
-      "${var.node_pool_sa.name}" = {
+      "${local.node_pool_sa_name}" = {
         description = var.node_pool_sa.description
         roles = (
-          var.node_pool_sa.roles != null
+          var.node_pool_sa.roles != null && var.wid_sa.roles != []
           ? var.node_pool_sa.roles
           : [
             "storage.objectAdmin",
@@ -87,4 +72,5 @@ module "service_accounts" {
 #  project    = var.project_id
 #  account_id = var.node_pools_sa_name
 #}
+
 

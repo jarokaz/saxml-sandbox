@@ -14,25 +14,37 @@
 
 
 locals {
-  network_self_link      = try(var.vpc_ref.network_self_link, module.vpc.0.self_link)
-  subnet_self_link       = try(var.vpc_ref.subnet_self_link, module.vpc.0.subnet_self_links["${var.vpc_config.subnet_region}/${var.vpc_config.subnet_name}"])
-  pods_ip_range_name     = try(var.vpc_ref.pods_ip_range_name, var.vpc_config.secondary_ip_ranges.pods)
-  services_ip_range_name = try(var.vpc_ref.services_ip_range_name, var.vpc_config.secondary_ip_ranges.services)
+  pods_ip_range_name     = "pods"
+  services_ip_range_name = "services"
 }
 
 module "vpc" {
   source                   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v28.0.0&depth=1"
-  count                    = var.vpc_config != null ? 1 : 0
+  count                    = var.vpc_ref == null ? 1 : 0
   project_id               = var.project_id
-  name                     = var.vpc_config.network_name
-  routing_mode             = "REGIONAL"
+  name                     = local.network_name
+  routing_mode             = var.vpc_config.routing_mode
   create_googleapis_routes = null
   subnets = [
     {
-      name                = var.vpc_config.subnet_name
-      ip_cidr_range       = var.vpc_config.ip_cidr_range
-      region              = var.vpc_config.subnet_region
-      secondary_ip_ranges = var.vpc_config.secondary_ip_ranges
+      name          = local.subnet_name
+      ip_cidr_range = var.vpc_config.subnet_ip_cidr_range
+      region        = var.region
+      secondary_ip_ranges = {
+        "${local.pods_ip_range_name}"     = var.vpc_config.pods_ip_cidr_range
+        "${local.services_ip_range_name}" = var.vpc_config.services_ip_cidr_range
+      }
     }
   ]
 }
+
+module "nat" {
+  source         = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat?ref=v28.0.0&depth=1"
+  project_id     = var.project_id
+  region         = var.region
+  name           = var.vpc_config.nat_router_name
+  router_create  = true
+  router_network = module.vpc.0.name
+}
+
+
