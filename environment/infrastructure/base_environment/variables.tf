@@ -142,6 +142,35 @@ variable "cpu_node_pools" {
   nullable = true
 }
 
+variable "tpu_node_pools" {
+  description = "Configurations for TPU node pools"
+  type = map(object({
+    zones          = list(string)
+    min_node_count = number
+    max_node_count = number
+    tpu_type       = string
+    disk_type      = optional(string, "pd-standard")
+    disk_size_gb   = optional(string, 200)
+    gvnic          = optional(bool, true)
+    #    auto_repair    = optional(bool, true)
+    #    auto_upgrade   = optional(bool, true)
+    oauth_scopes = optional(list(string), ["https://www.googleapis.com/auth/cloud-platform"])
+    taints = optional(map(object({
+      value  = string
+      effect = string
+    })))
+  }))
+  validation {
+    condition = alltrue([
+      for k, v in merge([for name, node_pool in var.cpu_node_pools : node_pool.taints]...) :
+      contains(["NO_SCHEDULE", "PREFER_NO_SCHEDULE", "NO_EXECUTE"], v.effect)
+    ])
+    error_message = "Invalid taint effect."
+  }
+  default  = null
+  nullable = true
+}
+
 ########################################
 #
 #variable "network_project_id" {
