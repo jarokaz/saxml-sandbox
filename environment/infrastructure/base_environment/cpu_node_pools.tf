@@ -17,7 +17,7 @@ locals {
   node_pools = { for node_pool_name, node_pool in var.cpu_node_pools :
     node_pool_name => merge(
       {
-        taints = node_pool.taints
+        taints = merge({}, node_pool.taints)
       },
       {
         locations = node_pool.zones

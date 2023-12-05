@@ -37,23 +37,24 @@ locals {
 
   tpu_node_pools = { for node_pool_name, node_pool in var.tpu_node_pools :
     node_pool_name => {
-      machine_type   = tpu_types[node_pool.tpu_type][3]
-      tpu_topology   = tpu_types[node_pool.tpu_type][0]
+      machine_type   = local.tpu_types[node_pool.tpu_type][3]
+      tpu_topology   = local.tpu_types[node_pool.tpu_type][0]
       zones          = node_pool.zones
-      multihost      = tpu_types[node_pool.tpu_type][5]
+      multihost      = local.tpu_types[node_pool.tpu_type][5]
       min_node_count = node_pool.min_node_count
       max_node_count = node_pool.max_node_count
-      node_count     = tpu_types[node_pool.tpu_type][1]
+      node_count     = local.tpu_types[node_pool.tpu_type][1]
       initial_node_count = (
         node_pool.min_node_count < node_pool.max_node_count
         ? 0
-        : tpu_types[node_pool.tpu_type][5]
+        : local.tpu_types[node_pool.tpu_type][5]
         ? node_pool.max_node_count
-        : tpu_types[node_pool.tpu_type][1]
+        : local.tpu_types[node_pool.tpu_type][1]
       )
       autoscaling          = node_pool.min_node_count < node_pool.max_node_count
-      gvnic                = node_pool.gvinc
-      taints               = node_pool.taints
+      gvnic                = node_pool.gvnic
+      taints               = merge({}, node_pool.taints)
+      oauth_scopes         = node_pool.oauth_scopes
       reservation_affinity = null
     }
   }
@@ -62,7 +63,7 @@ locals {
 
 
 resource "google_container_node_pool" "tpu_node_pool" {
-  for_each = host_tpu_node_pools
+  for_each = local.tpu_node_pools
 
   provider           = google-beta
   project            = var.project_id
@@ -92,9 +93,9 @@ resource "google_container_node_pool" "tpu_node_pool" {
     machine_type    = each.value.machine_type
     service_account = local.node_pool_sa_email
     oauth_scopes    = each.value.oauth_scopes
-    gvnic = {
-      enabled = each.value.gvnic
-    }
+    #    gvnic = {
+    #      enabled = each.value.gvnic
+    #    }
     workload_metadata_config {
       mode = "GKE_METADATA"
     }
@@ -109,7 +110,11 @@ resource "google_container_node_pool" "tpu_node_pool" {
 
     dynamic "reservation_affinity" {
       for_each = each.value.reservation_affinity != null ? [""] : []
-
+      content {
+        consume_reservation_type = each.value.reservation_affinity.consume_reservation_type
+        key                      = each.value.reservation_affinity.key
+        values                   = each.value.reservation_affinity.values
+      }
     }
   }
 

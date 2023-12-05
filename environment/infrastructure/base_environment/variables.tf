@@ -138,8 +138,8 @@ variable "cpu_node_pools" {
     ])
     error_message = "Invalid taint effect."
   }
-  default  = null
-  nullable = true
+  default  = {}
+  nullable = false
 }
 
 variable "tpu_node_pools" {
@@ -162,13 +162,13 @@ variable "tpu_node_pools" {
   }))
   validation {
     condition = alltrue([
-      for k, v in merge([for name, node_pool in var.cpu_node_pools : node_pool.taints]...) :
+      for k, v in merge([for name, node_pool in var.tpu_node_pools : node_pool.taints]...) :
       contains(["NO_SCHEDULE", "PREFER_NO_SCHEDULE", "NO_EXECUTE"], v.effect)
     ])
     error_message = "Invalid taint effect."
   }
-  default  = null
-  nullable = true
+  default  = {}
+  nullable = false
 }
 
 ########################################
