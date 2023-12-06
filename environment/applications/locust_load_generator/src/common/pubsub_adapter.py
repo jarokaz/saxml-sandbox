@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from common import metrics_pb2
+from google.pubsub_v1.types import PubsubMessage
+from google.pubsub_v1.services.publisher.client import PublisherClient
+from google.protobuf.json_format import MessageToDict
+from google.cloud import pubsub_v1
+from locust.runners import STATE_RUNNING, MasterRunner
+from locust import events
+from locust.env import Environment
 import os
 import json
 import logging
@@ -21,17 +29,6 @@ import gevent
 import grpc.experimental.gevent as grpc_gevent
 # patch grpc so that it uses gevent instead of asyncio
 grpc_gevent.init_gevent()
-
-from locust.env import Environment
-from locust import events
-from locust.runners import  STATE_RUNNING, MasterRunner
-
-from google.cloud import pubsub_v1
-from google.protobuf.json_format import MessageToDict
-from google.pubsub_v1.services.publisher.client import PublisherClient
-from google.pubsub_v1.types import PubsubMessage
-
-from common import metrics_pb2
 
 
 def greenlet_exception_handler():
@@ -146,18 +143,17 @@ class PubsubAdapter:
             self.messages.pop()
 
         message = self._prepare_message(
-                test_id=self.test_id,
-                request_type=request_type,
-                name=name,
-                response_time=response_time,
-                response_length=response_length,
-                response=response,
-                context=context,
-                exception=exception,
-                start_time=start_time)
+            test_id=self.test_id,
+            request_type=request_type,
+            name=name,
+            response_time=response_time,
+            response_length=response_length,
+            response=response,
+            context=context,
+            exception=exception,
+            start_time=start_time)
 
         self.messages.append(message)
-
 
     def _prepare_message(self,
                          test_id: str,
@@ -170,7 +166,7 @@ class PubsubAdapter:
                          exception: Exception,
                          start_time: datetime):
         """Prepare a metrics protobuf."""
-       
+
         metrics = {
             "test_id": test_id,
             "request_type": request_type,
@@ -178,22 +174,23 @@ class PubsubAdapter:
             "response_time": response_time,
             "response_length": response_length,
             "start_time": time.strftime(
-                "%Y-%m-%d %H:%M:%S",  time.localtime(start_time)) 
+                "%Y-%m-%d %H:%M:%S",  time.localtime(start_time))
         }
         if exception:
             metrics["exception"] = str(exception)
         if self.environment.parsed_options.request_response_logging == "enabled":
             response_dict = response.json()
             metrics["response"] = json.dumps(response_dict)
-    
+
         if context:
             for key in ["model_name", "model_method", "request", "num_input_tokens", "num_output_tokens", "tokenizer", "model_response_time"]:
                 value = context.get(key)
                 if value:
                     metrics[key] = value
-        
+
         metrics_proto = metrics_pb2.Metrics(**metrics)
-        message = PubsubMessage(data=json.dumps(MessageToDict(metrics_proto)).encode("utf-8"))
+        message = PubsubMessage(data=json.dumps(
+            MessageToDict(metrics_proto)).encode("utf-8"))
 
         return message
 
@@ -207,9 +204,9 @@ def _(parser):
     parser.add_argument("--test_id", type=str,
                         include_in_web_ui=True, default="", help="Test ID")
     parser.add_argument("--topic_name", type=str, env_var="TOPIC_NAME",
-                        include_in_web_ui=False, default="locust_pubsub_sink",  help="Pubsub topic name")
+                        include_in_web_ui=False, default="",  help="Pubsub topic name")
     parser.add_argument("--project_id", type=str, env_var="PROJECT_ID",
-                        include_in_web_ui=False, default="jk-mlops-dev",  help="Project ID")
+                        include_in_web_ui=False, default="",  help="Project ID")
     parser.add_argument("--maximum_message_queue_length", type=int, env_var="MAXIMUM_MESSAGE_QUEUE_LENGTH",
                         include_in_web_ui=False, default=1000, help="The maximum size of the in-memory message queue that stages messages for publishing")
     parser.add_argument("--minimum_message_queue_length", type=int, env_var="MINIMUM_MESSAGE_QUEUE_LENGTH",
@@ -222,7 +219,7 @@ def config_metrics_tracking(environment: Environment):
             logging.info(
                 f"Configuring a Pubsub publisher for topic {environment.parsed_options.topic_name}")
             PubsubAdapter(env=environment, project_id=environment.parsed_options.project_id, topic_name=environment.parsed_options.topic_name,
-                        minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximum_message_queue_length=environment.parsed_options.maximum_message_queue_length)
+                          minimum_message_queue_length=environment.parsed_options.minimum_message_queue_length, maximum_message_queue_length=environment.parsed_options.maximum_message_queue_length)
 
         else:
             logging.warning(

@@ -45,7 +45,7 @@ variable "gcs_configs" {
     versioning    = optional(bool, false)
     location      = optional(string, "")
     storage_class = optional(string, "STANDARD")
-    iam           = optional(list(string), [])
+    iam           = optional(list(string), ["storage.legacyBucketReader"])
   }))
   default  = {}
   nullable = false
@@ -59,6 +59,7 @@ variable "node_pool_sa" {
     roles = optional(list(string), [
       "storage.objectAdmin",
       "logging.logWriter",
+      "pubsub.publisher",
     ])
     description = optional(string, "GKE workload identity service account")
   })
@@ -79,6 +80,7 @@ variable "wid_sa" {
     roles = optional(list(string), [
       "storage.objectAdmin",
       "logging.logWriter",
+      "pubsub.publisher",
     ])
     description = optional(string, "GKE node pool service account")
   })

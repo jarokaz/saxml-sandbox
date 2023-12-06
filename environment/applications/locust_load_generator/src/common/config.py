@@ -25,8 +25,6 @@ from locust.runners import MasterRunner, WorkerRunner
 from common import PubsubAdapter
 
 
-
-
 @events.init.add_listener
 def on_locust_init(environment, **kwargs):
     global test_data

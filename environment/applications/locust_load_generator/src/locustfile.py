@@ -20,7 +20,7 @@ import os
 from typing import Callable
 
 from locust import HttpUser, between, task, events
-from locust.runners import  MasterRunner
+from locust.runners import MasterRunner
 from common import config_metrics_tracking
 from common import load_test_prompts
 
@@ -33,7 +33,7 @@ def get_tokenizer(tokenizer_name: str) -> Callable:
     tokenizer = None
     if tokenizer_name == "meta-llama/Llama-2-7b-hf":
         huggingface_hub.login(token=os.environ['HUGGINGFACE_TOKEN'])
-        tokenizer  = LlamaTokenizer.from_pretrained(tokenizer_name) 
+        tokenizer = LlamaTokenizer.from_pretrained(tokenizer_name)
     return tokenizer
 
 
@@ -66,7 +66,7 @@ class SaxmlUser(HttpUser):
         model_options = {}
         request = {
             "prompt": prompt,
-            "model_id": self.environment.parsed_options.model_id, 
+            "model_id": self.environment.parsed_options.model_id,
             "model_options": model_options,
         }
         with self.client.post("/generate", json=request, catch_response=True) as resp:
@@ -77,8 +77,9 @@ class SaxmlUser(HttpUser):
                 resp_dict = resp.json()
                 resp.request_meta["context"]["model_response_time"] = resp_dict["performance_metrics"]["response_time"]
                 if tokenizer:
-                    resp.request_meta["context"]["tokenizer"] = self.environment.parsed_options.tokenizer 
-                    resp.request_meta["context"]["num_input_tokens"] = len(tokenizer.encode(prompt))
+                    resp.request_meta["context"]["tokenizer"] = self.environment.parsed_options.tokenizer
+                    resp.request_meta["context"]["num_input_tokens"] = len(
+                        tokenizer.encode(prompt))
                     resp.request_meta["context"]["num_output_tokens"] = sum([
                         len(tokenizer.encode(completion[0])) for completion in resp_dict["completions"]
                     ])
@@ -87,11 +88,12 @@ class SaxmlUser(HttpUser):
 @events.init_command_line_parser.add_listener
 def _(parser):
     parser.add_argument("--model_id", type=str, env_var="MODEL_ID",
-                        include_in_web_ui=True, default="/sax/test/llama7bfp16tpuv5e",  help="Model ID")
+                        include_in_web_ui=True, default="",  help="Model ID")
     parser.add_argument("--tokenizer", type=str, env_var="TOKENIZER",
-                        include_in_web_ui=True, default="meta-llama/Llama-2-7b-hf", help="Tokenizer to use for token calculations")
+                        include_in_web_ui=True, default="", help="Tokenizer to use for token calculations")
     parser.add_argument("--test_data_uri", type=str, env_var="TEST_DATA_URI",
-                        include_in_web_ui=True, default="gs://jk-saxml-archive/test_data/orca_prompts.jsonl", help="GCS URI to test data")
+                        include_in_web_ui=True, default="", help="GCS URI to test data")
+
 
 @events.test_start.add_listener
 def _(environment, **kwargs):
@@ -99,7 +101,8 @@ def _(environment, **kwargs):
         global test_data
         global tokenizer
 
-        logging.info(f"Loading test prompts from {environment.parsed_options.test_data_uri}")
+        logging.info(
+            f"Loading test prompts from {environment.parsed_options.test_data_uri}")
         test_data = []
         test_data = load_test_prompts(environment.parsed_options.test_data_uri)
         tokenizer = get_tokenizer(environment.parsed_options.tokenizer)
@@ -108,4 +111,4 @@ def _(environment, **kwargs):
 @events.init.add_listener
 def _(environment, **kwargs):
     logging.info("INITIALIZING LOCUST ....")
-    config_metrics_tracking(environment) 
+    config_metrics_tracking(environment)
