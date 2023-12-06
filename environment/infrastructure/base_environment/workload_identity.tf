@@ -17,21 +17,26 @@ provider "kubernetes" {
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(module.cluster.ca_certificate)
 }
-
-
+#
+##module "workload-identity" {
+##  source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+##  use_existing_gcp_sa = true
+##  name                = google_service_account.preexisting.account_id
+##  project_id          = var.project_id
+##
+##  # wait for the custom GSA to be created to force module data source read during apply
+##  # https://github.com/terraform-google-modules/terraform-google-kubernetes-engine/issues/1059
+##  depends_on = [google_service_account.preexisting]
+##}
+#
 locals {
-  namespace               = var.cluster_config.workload_identity_namespace
+  namespace               = var.cluster_config.workloads_namespace
   ksa_name                = local.wid_sa_name
   gcp_sa_name             = local.wid_sa_name
   gcp_sa_static_id        = "projects/${var.project_id}/serviceAccounts/${local.wid_sa_email}"
   gcp_sa_email            = local.wid_sa_email
-  output_k8s_name         = kubernetes_service_account.ksa.metadata[0].name
-  output_k8s_namespace    = kubernetes_service_account.ksa.metadata[0].namespace
-  k8s_sa_gcp_derived_name = "serviceAccount:${var.project_id}.svc.id.goog[${local.output_k8s_namespace}/${local.output_k8s_name}]"
-
+  k8s_sa_gcp_derived_name = "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.ksa_name}]"
 }
-
-
 
 resource "kubernetes_namespace" "namespace" {
   metadata {
@@ -44,7 +49,7 @@ resource "kubernetes_service_account" "ksa" {
   automount_service_account_token = false
   metadata {
     name      = local.ksa_name
-    namespace = local.namespace
+    namespace = kubernetes_namespace.namespace.metadata[0].name
     annotations = {
       "iam.gke.io/gcp-service-account" = local.gcp_sa_email
     }
@@ -56,5 +61,3 @@ resource "google_service_account_iam_member" "main" {
   role               = "roles/iam.workloadIdentityUser"
   member             = local.k8s_sa_gcp_derived_name
 }
-
-

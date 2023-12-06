@@ -25,7 +25,8 @@ module "cluster" {
   deletion_protection = var.deletion_protection
   release_channel     = var.cluster_config.release_channel
   enable_addons = {
-    gcs_fuse_csi_driver = var.cluster_config.gcs_fuse_csi_driver
+    gcs_fuse_csi_driver            = var.cluster_config.gcs_fuse_csi_driver
+    gce_persistent_disk_csi_driver = var.cluster_config.gce_persistent_disk_csi_driver
   }
   enable_features = {
     workload_identity = var.cluster_config.workload_identity

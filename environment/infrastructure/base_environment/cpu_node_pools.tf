@@ -15,48 +15,36 @@
 locals {
 
   node_pools = { for node_pool_name, node_pool in var.cpu_node_pools :
-    node_pool_name => merge(
-      {
-        taints = merge({}, node_pool.taints)
-      },
-      {
-        locations = node_pool.zones
-      },
-      {
-        service_account = {
-          email        = local.node_pool_sa_email
-          oauth_scopes = node_pool.oauth_scopes
-        }
-      },
-      {
-        node_config = {
-          machine_type = node_pool.machine_type
-          disk_type    = node_pool.disk_type
-          disk_size_gb = node_pool.disk_size_gb
-        }
-      },
-      {
-        node_count = {
-          initial = node_pool.min_node_count
-        }
-      },
-      {
-        nodepool_config = merge(
-          {
-            managment = {
-              auto_repair  = node_pool.auto_repair
-              auto_upgrade = node_pool.auto_upgrade
-            }
-          },
-          node_pool.min_node_count < node_pool.max_node_count ? {
-            autoscaling = {
-              max_node_count = node_pool.max_node_count
-              min_node_count = node_pool.min_node_count
-            }
-          } : {}
-        )
+    node_pool_name => {
+      taints    = merge({}, node_pool.taints)
+      locations = node_pool.zones
+      service_account = {
+        email        = local.node_pool_sa_email
+        oauth_scopes = node_pool.oauth_scopes
       }
-    )
+      node_config = {
+        machine_type = node_pool.machine_type
+        disk_type    = node_pool.disk_type
+        disk_size_gb = node_pool.disk_size_gb
+      }
+      node_count = {
+        initial = node_pool.min_node_count
+      }
+      nodepool_config = merge(
+        {
+          managment = {
+            auto_repair  = node_pool.auto_repair
+            auto_upgrade = node_pool.auto_upgrade
+          }
+        },
+        node_pool.min_node_count < node_pool.max_node_count ? {
+          autoscaling = {
+            max_node_count = node_pool.max_node_count
+            min_node_count = node_pool.min_node_count
+          }
+        } : {}
+      )
+    }
   }
 }
 

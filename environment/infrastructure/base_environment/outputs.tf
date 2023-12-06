@@ -28,6 +28,16 @@ output "cluster_name" {
   value       = module.cluster.name
 }
 
+output "cluster_endpoint" {
+  description = "The endpoint for the GKE cluster"
+  value       = module.cluster.endpoint
+}
+
+output "cluster_certificate" {
+  sensitive = true
+  value     = module.cluster.ca_certificate
+}
+
 # Mitigation for the lack of validations on multiple input variables
 #output "validate_network_config" {
 #  value = null
@@ -40,43 +50,3 @@ output "cluster_name" {
 #}
 
 
-##### Debugging
-
-#output "var_cpu_node_pools" {
-#  value = var.cpu_node_pools
-#}
-
-output "local_node_pools" {
-  value = local.node_pools
-}
-
-
-output "vpc_config_output" {
-  value = var.vpc_config
-}
-
-#output "vpc_settings" {
-#  value = var.vpc_config
-#}
-#
-#output "network_self_link" {
-#  value = local.network_self_link
-#}
-#
-#output "subnet_self_link" {
-#  value = local.subnet_self_link
-#}
-#
-#output "pods_ip_range_name" {
-#  value = local.pods_ip_range_name
-#}
-#
-#output "servics_ip_range_name" {
-#  value = local.services_ip_range_name
-#}
-#
-#
-#output "cluster_name" {
-#  value = local.cluster_name
-#}
-#

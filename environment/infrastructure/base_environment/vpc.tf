@@ -40,6 +40,7 @@ module "vpc" {
 
 module "nat" {
   source         = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat?ref=v28.0.0&depth=1"
+  count          = var.vpc_ref == null ? 1 : 0
   project_id     = var.project_id
   region         = var.region
   name           = var.vpc_config.nat_router_name
