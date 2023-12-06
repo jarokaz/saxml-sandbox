@@ -34,19 +34,13 @@ output "cluster_endpoint" {
 }
 
 output "cluster_certificate" {
-  sensitive = true
-  value     = module.cluster.ca_certificate
+  description = "The cluster's certificate"
+  sensitive   = true
+  value       = module.cluster.ca_certificate
 }
 
-# Mitigation for the lack of validations on multiple input variables
-#output "validate_network_config" {
-#  value = null
-#
-#  precondition {
-#    condition = 1 == sum([for c in [
-#    var.vpc_ref != null, var.vpc_config != null] : c ? 1 : 0])
-#    error_message = "You must configure vpc_ref or vpc_config but not both."
-#  }
-#}
-
+output "region" {
+  description = "The region of the environment"
+  value       = var.region
+}
 
