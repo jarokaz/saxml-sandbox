@@ -15,7 +15,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: saxml
+namespace: serving-workloads
 
 configMapGenerator:
   - name: saxml-parameters 
@@ -37,13 +37,6 @@ resources:
 - saxml-admin-deployment.yaml
 - saxml-model-server-deployment.yaml
 - saxml-util-deployment.yaml
-#- jupyterlab-service.yaml
-#- jupyterlab-deployment.yaml
-
-#- ingress-gateway.yaml
-#- virtual-service.yaml
-#- destination-rule.yaml
-#
 
 replacements:
 - source:
