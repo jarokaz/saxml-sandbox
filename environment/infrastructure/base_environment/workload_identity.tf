@@ -17,18 +17,7 @@ provider "kubernetes" {
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(module.cluster.ca_certificate)
 }
-#
-##module "workload-identity" {
-##  source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-##  use_existing_gcp_sa = true
-##  name                = google_service_account.preexisting.account_id
-##  project_id          = var.project_id
-##
-##  # wait for the custom GSA to be created to force module data source read during apply
-##  # https://github.com/terraform-google-modules/terraform-google-kubernetes-engine/issues/1059
-##  depends_on = [google_service_account.preexisting]
-##}
-#
+
 locals {
   namespace               = var.cluster_config.workloads_namespace
   ksa_name                = local.wid_sa_name

@@ -123,7 +123,7 @@ variable "cluster_config" {
   description = "Base cluster configurations"
   type = object({
     name                           = optional(string, "gke-ml-cluster")
-    release_channel                = optional(string, "REGULAR")
+    release_channel                = optional(string, "RAPID")
     description                    = optional(string, "GKE ML inference cluster")
     gcs_fuse_csi_driver            = optional(bool, true)
     gce_persistent_disk_csi_driver = optional(bool, true)

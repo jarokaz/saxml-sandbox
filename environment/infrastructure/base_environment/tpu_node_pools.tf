@@ -64,7 +64,7 @@ locals {
 
 
 
-resource "google_container_node_pool" "tpu_node_pool" {
+resource "google_container_node_pool" "tpu_node_pools" {
   for_each = local.tpu_node_pools
 
   provider           = google-beta
