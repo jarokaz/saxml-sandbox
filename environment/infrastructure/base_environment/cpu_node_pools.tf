@@ -16,7 +16,8 @@ locals {
 
   node_pools = { for node_pool_name, node_pool in var.cpu_node_pools :
     node_pool_name => {
-      taints    = merge({}, node_pool.taints)
+      taints    = node_pool.taints
+      labels    = node_pool.labels
       locations = node_pool.zones
       service_account = {
         email        = local.node_pool_sa_email
@@ -63,4 +64,5 @@ module "cpu_node_pools" {
   nodepool_config = each.value.nodepool_config
   service_account = each.value.service_account
   taints          = each.value.taints
+  labels          = each.value.labels
 }

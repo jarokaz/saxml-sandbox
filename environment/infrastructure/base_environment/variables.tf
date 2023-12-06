@@ -151,7 +151,8 @@ variable "cpu_node_pools" {
     taints = optional(map(object({
       value  = string
       effect = string
-    })))
+    })), {})
+    labels = optional(map(string), {})
   }))
   validation {
     condition = alltrue([
@@ -181,7 +182,8 @@ variable "tpu_node_pools" {
     taints = optional(map(object({
       value  = string
       effect = string
-    })))
+    })), {})
+    labels = optional(map(string), {})
   }))
   validation {
     condition = alltrue([

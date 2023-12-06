@@ -55,7 +55,8 @@ locals {
       )
       autoscaling          = node_pool.min_node_count < node_pool.max_node_count
       gvnic                = node_pool.gvnic
-      taints               = merge({}, node_pool.taints)
+      taints               = node_pool.taints
+      labels               = node_pool.labels
       oauth_scopes         = node_pool.oauth_scopes
       reservation_affinity = null
     }
@@ -111,6 +112,8 @@ resource "google_container_node_pool" "tpu_node_pools" {
         effect = taint.value.effect
       }
     }
+
+    labels = each.value.labels
 
     dynamic "reservation_affinity" {
       for_each = each.value.reservation_affinity != null ? [""] : []
