@@ -77,7 +77,9 @@ module "automation_sa" {
       "roles/compute.networkAdmin",
       "roles/container.admin",
       "roles/iam.serviceAccountUser",
-      "roles/storage.admin"
+      "roles/storage.admin",
+      "roles/pubsub.editor",
+      "roles/bigquery.admin"
     ]
   }
 }
